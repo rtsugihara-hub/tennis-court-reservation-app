@@ -29,7 +29,20 @@ public class ReservationService {
     }
 
     public Reservation save(Reservation reservation) {
-        // ★ 修正箇所：Long型のため isEmpty() ではなく null チェックで判定（自動採番させるため手動ID設定は不要）
+        // ★ 重複チェック処理を追加
+        boolean isAlreadyBooked = reservationRepository.existsByCourtIdAndDateAndTimeSlotAndStatusNot(
+            reservation.getCourtId(),
+            reservation.getDate(),
+            reservation.getTimeSlot(),
+            "cancelled"
+        );
+
+        if (isAlreadyBooked) {
+            // 例外をスロー（Controller側でキャッチして 409 Conflict を返す）
+            throw new IllegalArgumentException("指定されたコート・日時は既に予約されています。");
+        }
+
+        // ステータスの初期値設定
         if (reservation.getStatus() == null) {
             reservation.setStatus("confirmed");
         }
@@ -37,7 +50,6 @@ public class ReservationService {
     }
 
     public Reservation cancelReservation(Long id) {
-        // ★ 修正箇所：引数を Long 型に合わせる
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("予約が見つかりません: " + id));
         

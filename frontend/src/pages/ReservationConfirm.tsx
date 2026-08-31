@@ -14,6 +14,9 @@ export const ReservationConfirm: React.FC<ReservationConfirmProps> = ({ court, c
 
   // 予約確定処理 (API通信)
   const handleConfirmReservation = async () => {
+    // 連打による多重送信防止
+    if (loading) return;
+
     if (!currentUser?.id) {
       alert('ログイン情報が見つかりません。再ログインしてください。');
       return;
@@ -41,14 +44,22 @@ export const ReservationConfirm: React.FC<ReservationConfirmProps> = ({ court, c
         body: JSON.stringify(reservationPayload),
       });
 
-      if (!response.ok) {
-        throw new Error('予約処理に失敗しました');
+      // 1. バックエンド側で重複（409 Conflict）と判定された場合
+      if (response.status === 409) {
+        alert('申し訳ありません。ご指定のコート・日時は既に予約されています。別の枠をお選びください。');
+        onBack(); // 予約選択画面へ戻す
+        return;
       }
 
-      // 親コンポーネント側の完了処理（画面遷移等）を呼び出す
+      // 2. その他のHTTPエラー（400, 500など）の場合
+      if (!response.ok) {
+        throw new Error(`予約処理に失敗しました (HTTP: ${response.status})`);
+      }
+
+      // 3. 正常終了時
       onConfirm();
     } catch (error) {
-      console.error(error);
+      console.error('予約処理エラー:', error);
       alert('予約の確定処理に失敗しました。時間をおいて再度お試しください。');
     } finally {
       setLoading(false);
