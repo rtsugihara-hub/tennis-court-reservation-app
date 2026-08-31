@@ -33,7 +33,7 @@ services:
     depends_on:
       - db
 
-  # 3. フロントエンドコンテナ (React / Vite)
+# 3. フロントエンドコンテナ (React / Vite)
   frontend:
     build:
       context: ./frontend
@@ -42,7 +42,13 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend/src:/app/src
+      # フロントエンド直下の全ファイルを同期
+      - ./frontend:/app
+      # コンテナ内の node_modules がローカルで上書きされないよう保護
+      - /app/node_modules
+    environment:
+      # Windows環境等でホットリロードを確実に効かせる設定
+      - WATCHPACK_POLLING=true
     depends_on:
       - backend
 

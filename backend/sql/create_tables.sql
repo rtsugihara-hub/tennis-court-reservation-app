@@ -7,7 +7,6 @@ CREATE TABLE users (
     role VARCHAR(20) NOT NULL
 );
 
--- 2. コートテーブル (courts)
 CREATE TABLE courts (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -17,7 +16,8 @@ CREATE TABLE courts (
     description TEXT,
     status VARCHAR(20) NOT NULL,
     date DATE NOT NULL,
-    time_slot VARCHAR(50) NOT NULL
+    time_slot VARCHAR(50) NOT NULL,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE -- 論理削除フラグを追加
 );
 
 -- 3. 予約テーブル (reservations)

@@ -1,122 +1,160 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+// src/App.tsx
+import React, { useState } from 'react';
+import type { Court, User, Reservation } from './types';
+import { Login } from './pages/Login';
+import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
+import { Dashboard } from './pages/Dashboard';
+import { CourtList } from './pages/CourtList';
+import { CourtDetail } from './pages/CourtDetail';
+import { ReservationConfirm } from './pages/ReservationConfirm';
+import { ReservationComplete } from './pages/ReservationComplete';
+import { MyPage } from './pages/MyPage';
+import { ReservationDetail } from './pages/ReservationDetail';
+import { AdminCourtList } from './pages/admin/AdminCourtList';
+import { AdminReservationList } from './pages/admin/AdminReservationList';
 
-function App() {
-  const [count, setCount] = useState(0)
+export const App: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  
+  // サイドメニュー開閉フラグ
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+
+  const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [subStep, setSubStep] = useState<'list' | 'detail' | 'confirm' | 'complete'>('list');
+
+  const handleLogin = (user: User) => {
+    setCurrentUser(user);
+    if (user.role === 'admin') {
+      setCurrentTab('admin-courts');
+    } else {
+      setCurrentTab('dashboard');
+    }
+    setIsSidebarOpen(true);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setSelectedCourt(null);
+    setSelectedReservation(null);
+  };
+
+  const handleToggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
+  };
+
+  const handleSelectTab = (tab: string) => {
+    setCurrentTab(tab);
+    setSubStep('list');
+    setSelectedCourt(null);
+    setSelectedReservation(null);
+    setIsSidebarOpen(false);
+  };
+
+  const handleSelectCourt = (court: Court) => {
+    setSelectedCourt(court);
+    setSubStep('detail');
+  };
+
+  // マイページの予約一覧から予約詳細へ遷移
+  const handleSelectReservation = (reservation: Reservation) => {
+    setSelectedReservation(reservation);
+  };
+
+  // 予約キャンセル実行時のステータス更新
+  const handleCancelReservation = (reservationId: string) => {
+    if (selectedReservation && selectedReservation.id === reservationId) {
+      setSelectedReservation({ ...selectedReservation, status: 'cancelled' });
+    }
+  };
+
+  // 予約確定API完了後のステート移行処理
+  const handleConfirmReservation = () => {
+    setSubStep('complete');
+  };
+
+  if (!currentUser) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Header
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onToggleSidebar={handleToggleSidebar}
+      />
+      <div style={{ display: 'flex', flex: 1 }}>
+        <Sidebar
+          currentUser={currentUser}
+          currentTab={currentTab}
+          onSelectTab={handleSelectTab}
+          isOpen={isSidebarOpen}
+        />
+        <main style={{ flex: 1, backgroundColor: '#fff' }}>
+          {currentTab === 'dashboard' && <Dashboard currentUser={currentUser} />}
 
-      <div className="ticks"></div>
+          {currentTab === 'courts' && (
+            <>
+              {subStep === 'list' && <CourtList onSelectCourt={handleSelectCourt} />}
+              {subStep === 'detail' && selectedCourt && (
+                <CourtDetail
+                  court={selectedCourt}
+                  onBack={() => setSubStep('list')}
+                  onGoToConfirm={() => setSubStep('confirm')}
+                />
+              )}
+              {subStep === 'confirm' && selectedCourt && (
+                <ReservationConfirm
+                  court={selectedCourt}
+                  currentUser={currentUser}
+                  onBack={() => setSubStep('detail')}
+                  onConfirm={handleConfirmReservation}
+                />
+              )}
+              {subStep === 'complete' && (
+                <ReservationComplete
+                  onGoToDashboard={() => {
+                    setCurrentTab('dashboard');
+                    setSubStep('list');
+                    setSelectedCourt(null);
+                  }}
+                  onGoToMyPage={() => {
+                    setCurrentTab('mypage');
+                    setSubStep('list');
+                    setSelectedCourt(null);
+                  }}
+                />
+              )}
+            </>
+          )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          {currentTab === 'mypage' && (
+            <>
+              {selectedReservation ? (
+                <ReservationDetail
+                  reservation={selectedReservation}
+                  currentUser={currentUser}
+                  onBackToMyPage={() => setSelectedReservation(null)}
+                  onCancelReservation={handleCancelReservation}
+                />
+              ) : (
+                <MyPage
+                  currentUser={currentUser}
+                  onSelectReservation={handleSelectReservation}
+                />
+              )}
+            </>
+          )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-}
+          {currentTab === 'admin-reservations' && <AdminReservationList />}
+          {currentTab === 'admin-courts' && <AdminCourtList />}
+        </main>
+      </div>
+    </div>
+  );
+};
 
-export default App
+export default App;
