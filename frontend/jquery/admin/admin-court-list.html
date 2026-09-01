@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>コート登録・編集 - テニスコート予約管理システム</title>
+  <!-- jQuery (CDN) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="font-family: sans-serif; margin: 0; background-color: #f8f9fa;">
+
+  <!-- 共通ヘッダー読み込みエリア -->
+  <div id="headerContainer"></div>
+
+  <div style="display: flex;">
+    <!-- 共通サイドバー読み込みエリア -->
+    <div id="sidebarContainer"></div>
+
+    <!-- メインコンテンツ -->
+    <main style="padding: 20px; flex: 1;">
+      <h2 style="margin-top: 0; margin-bottom: 20px; color: #333;">コート登録・編集</h2>
+
+      <!-- フォームエリア -->
+      <div
+        style="
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          padding: 20px;
+          background-color: #fff;
+          max-width: 550px;
+          margin: 0 auto 30px auto;
+        "
+      >
+        <h3 id="formTitle" style="text-align: center; margin-top: 0; margin-bottom: 20px;">
+          新規コート登録
+        </h3>
+
+        <form id="courtForm" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- 編集対象のコートID（非表示） -->
+          <input type="hidden" id="editingCourtId" value="" />
+
+          <div style="display: flex; align-items: center;">
+            <label style="width: 130px; font-weight: bold;">コート名：</label>
+            <input
+              type="text"
+              id="name"
+              placeholder="コート名を入力してください。"
+              style="flex: 1; padding: 6px; border: 1px solid #333; border-radius: 4px;"
+            />
+          </div>
+
+          <div style="display: flex; align-items: center;">
+            <label style="width: 130px; font-weight: bold;">コート種別：</label>
+            <select id="type" style="flex: 1; padding: 6px; border: 1px solid #333; border-radius: 4px;">
+              <option value="">選択してください</option>
+              <option value="オムニ">オムニ</option>
+              <option value="クレー">クレー</option>
+              <option value="ハード">ハード</option>
+              <option value="人工芝">人工芝</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center;">
+            <label style="width: 130px; font-weight: bold;">屋内外区分：</label>
+            <div style="display: flex; gap: 15px;">
+              <label><input type="radio" name="indoorOutdoor" value="false"> 屋外</label>
+              <label><input type="radio" name="indoorOutdoor" value="true"> 屋内</label>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center;">
+            <label style="width: 130px; font-weight: bold;">利用日：</label>
+            <input
+              type="date"
+              id="date"
+              style="flex: 1; padding: 6px; border: 1px solid #333; border-radius: 4px;"
+            />
+          </div>
+
+          <div style="display: flex; align-items: center;">
+            <label style="width: 130px; font-weight: bold;">利用時間帯：</label>
+            <input
+              type="text"
+              id="timeSlot"
+              placeholder="例: 10:00-12:00"
+              style="flex: 1; padding: 6px; border: 1px solid #333; border-radius: 4px;"
+            />
+          </div>
+
+          <div style="display: flex; align-items: center;">
+            <label style="width: 130px; font-weight: bold;">利用料金：</label>
+            <input
+              type="number"
+              id="price"
+              placeholder="例: 2000"
+              style="flex: 1; padding: 6px; border: 1px solid #333; border-radius: 4px;"
+            />
+          </div>
+
+          <div style="display: flex; align-items: center;">
+            <label style="width: 130px; font-weight: bold;">公開ステータス：</label>
+            <select id="status" style="flex: 1; padding: 6px; border: 1px solid #333; border-radius: 4px;">
+              <option value="">選択してください</option>
+              <option value="公開中">公開中</option>
+              <option value="非公開">非公開</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: flex-start;">
+            <label style="width: 130px; font-weight: bold; margin-top: 6px;">備考・説明：</label>
+            <textarea
+              id="description"
+              rows="3"
+              style="flex: 1; padding: 6px; border: 1px solid #333; border-radius: 4px;"
+            ></textarea>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 10px;">
+            <button
+              type="button"
+              id="btnClear"
+              style="padding: 6px 20px; background-color: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
+            >
+              クリア
+            </button>
+            <button
+              type="submit"
+              id="btnSubmit"
+              style="padding: 6px 24px; background-color: #00a0e9; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;"
+            >
+              保存
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 一覧テーブルエリア -->
+      <div style="padding: 10px 0; background-color: #fff;">
+        <h3 style="margin: 0 0 15px 0;">■ コート一覧</h3>
+        <p id="loadingText" style="text-align: center; color: #666;">データを読み込み中...</p>
+
+        <table id="courtTable" style="width: 100%; border-collapse: collapse; border: 1px solid #333; text-align: center; display: none;">
+          <thead>
+            <tr style="background-color: #d4edda; border-bottom: 1px solid #333;">
+              <th style="border: 1px solid #333; padding: 8px;">コートID</th>
+              <th style="border: 1px solid #333; padding: 8px;">コート名</th>
+              <th style="border: 1px solid #333; padding: 8px;">コート種別</th>
+              <th style="border: 1px solid #333; padding: 8px;">屋内外</th>
+              <th style="border: 1px solid #333; padding: 8px;">利用日時</th>
+              <th style="border: 1px solid #333; padding: 8px;">利用料金</th>
+              <th style="border: 1px solid #333; padding: 8px;">公開ステータス</th>
+              <th style="border: 1px solid #333; padding: 8px;">備考・説明</th>
+              <th style="border: 1px solid #333; padding: 8px;">編集・削除</th>
+            </tr>
+          </thead>
+          <tbody id="courtTableBody">
+            <!-- JavaScriptで動的描画 -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript ロジック -->
+  <script>
+    $(document).ready(function () {
+      const API_BASE_URL = 'http://localhost:8080/api';
+      let courtsData = [];
+      let reservationsData = [];
+
+      // 共通コンポーネント読み込み
+      $('#headerContainer').load('../components/header.html');
+      $('#sidebarContainer').load('../components/sidebar.html');
+
+      // 初期データ取得
+      loadCourts();
+
+      // イベントバインド
+      $('#courtForm').on('submit', handleSave);
+      $('#btnClear').on('click', handleClear);
+
+      // 1. コート一覧および予約一覧を非同期取得
+      function loadCourts() {
+        $('#loadingText').show();
+        $('#courtTable').hide();
+
+        $.when(
+          $.ajax({ url: `${API_BASE_URL}/courts`, type: 'GET', dataType: 'json' }),
+          $.ajax({ url: `${API_BASE_URL}/reservations`, type: 'GET', dataType: 'json' })
+        )
+          .done(function (courtRes, reservationRes) {
+            courtsData = courtRes[0] || [];
+            reservationsData = reservationRes[0] || [];
+            renderTable();
+          })
+          .fail(function (xhr, status, error) {
+            console.error(error);
+            alert('コート情報の取得に失敗しました。');
+          })
+          .always(function () {
+            $('#loadingText').hide();
+            $('#courtTable').show();
+          });
+      }
+
+      // 2. 指定コートのアクティブな予約チェック（cancelled 以外）
+      function hasActiveReservations(courtId) {
+        return reservationsData.some(function (res) {
+          return String(res.courtId) === String(courtId) && res.status !== 'cancelled';
+        });
+      }
+
+      // 3. テーブル描画処理
+      function renderTable() {
+        const $tbody = $('#courtTableBody');
+        $tbody.empty();
+
+        const activeCourts = courtsData.filter(function (court) {
+          return !court.isDeleted;
+        });
+
+        if (activeCourts.length === 0) {
+          $tbody.append(`
+            <tr>
+              <td colspan="9" style="padding: 20px; color: #666;">
+                登録されているコートがありません。
+              </td>
+            </tr>
+          `);
+          return;
+        }
+
+        activeCourts.forEach(function (court) {
+          const isIndoorText = court.isIndoor ? '屋内' : '屋外';
+          const statusText = court.status === 'available' ? '公開中' : '非公開';
+          const priceText = court.pricePerHour ? `¥${court.pricePerHour.toLocaleString()}` : '¥0';
+
+          const $tr = $(`
+            <tr style="border-bottom: 1px solid #333;">
+              <td style="border: 1px solid #333; padding: 10px;">${court.id}</td>
+              <td style="border: 1px solid #333; padding: 10px;">${escapeHtml(court.name)}</td>
+              <td style="border: 1px solid #333; padding: 10px;">${escapeHtml(court.type)}</td>
+              <td style="border: 1px solid #333; padding: 10px;">${isIndoorText}</td>
+              <td style="border: 1px solid #333; padding: 10px;">${court.date || ''} ${court.timeSlot || ''}</td>
+              <td style="border: 1px solid #333; padding: 10px;">${priceText}</td>
+              <td style="border: 1px solid #333; padding: 10px;">${statusText}</td>
+              <td style="border: 1px solid #333; padding: 10px; text-align: left;">${escapeHtml(court.description || '')}</td>
+              <td style="border: 1px solid #333; padding: 10px;">
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                  <button class="btn-edit" style="background-color: #00a0e9; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;">
+                    編集
+                  </button>
+                  <button class="btn-delete" style="background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;">
+                    削除
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `);
+
+          // イベント設定
+          $tr.find('.btn-edit').on('click', function () { handleEdit(court); });
+          $tr.find('.btn-delete').on('click', function () { handleDelete(court.id); });
+
+          $tbody.append($tr);
+        });
+      }
+
+      // 4. 編集モードセット
+      function handleEdit(court) {
+        if (hasActiveReservations(court.id)) {
+          alert('指定されたコートには既に予約が存在するため、コート情報を編集できません。');
+          return;
+        }
+
+        $('#editingCourtId').val(court.id);
+        $('#name').val(court.name);
+        $('#type').val(court.type);
+        $(`input[name="indoorOutdoor"][value="${court.isIndoor}"]`).prop('checked', true);
+        $('#date').val(court.date);
+        $('#timeSlot').val(court.timeSlot);
+        $('#price').val(court.pricePerHour);
+        $('#status').val(court.status === 'available' ? '公開中' : '非公開');
+        $('#description').val(court.description);
+
+        $('#formTitle').text('コート情報編集');
+        $('#btnSubmit').text('更新');
+      }
+
+      // 5. 削除処理
+      function handleDelete(id) {
+        if (!confirm('このコート情報を削除しますか？')) return;
+
+        $.ajax({
+          url: `${API_BASE_URL}/courts/${id}`,
+          type: 'DELETE',
+          success: function () {
+            alert('削除しました');
+            if ($('#editingCourtId').val() == id) {
+              handleClear();
+            }
+            loadCourts();
+          },
+          error: function (xhr) {
+            if (xhr.status === 409) {
+              alert(xhr.responseText || 'このコートには既に予約が存在するため削除できません。');
+            } else {
+              alert('削除処理に失敗しました。');
+            }
+          }
+        });
+      }
+
+      // 6. 保存・更新処理
+      function handleSave(e) {
+        e.preventDefault();
+
+        const editingId = $('#editingCourtId').val();
+        const nameVal = $('#name').val().trim();
+        const typeVal = $('#type').val();
+        const isIndoorVal = $('input[name="indoorOutdoor"]:checked').val();
+        const dateVal = $('#date').val();
+        const timeSlotVal = $('#timeSlot').val().trim();
+        const priceVal = $('#price').val();
+        const statusVal = $('#status').val();
+        const descriptionVal = $('#description').val().trim();
+
+        // 必須項目入力チェック
+        if (!nameVal || !typeVal || isIndoorVal === undefined || !dateVal || !timeSlotVal || !priceVal || !statusVal) {
+          alert('必須項目をすべて入力してください。');
+          return;
+        }
+
+        // 事前予約チェック (編集時)
+        if (editingId && hasActiveReservations(editingId)) {
+          alert('指定されたコートには既に予約が存在するため、コート情報を編集できません。');
+          return;
+        }
+
+        const payload = {
+          name: nameVal,
+          type: typeVal,
+          isIndoor: isIndoorVal === 'true',
+          date: dateVal,
+          timeSlot: timeSlotVal,
+          pricePerHour: Number(priceVal) || 0,
+          description: descriptionVal,
+          status: statusVal === '公開中' ? 'available' : 'maintenance',
+          isDeleted: false
+        };
+
+        if (editingId) payload.id = editingId;
+
+        const url = editingId ? `${API_BASE_URL}/courts/${editingId}` : `${API_BASE_URL}/courts`;
+        const method = editingId ? 'PUT' : 'POST';
+
+        $.ajax({
+          url: url,
+          type: method,
+          contentType: 'application/json',
+          data: JSON.stringify(payload),
+          success: function () {
+            alert(editingId ? '更新しました' : '登録しました');
+            handleClear();
+            loadCourts();
+          },
+          error: function (xhr) {
+            if (xhr.status === 409) {
+              alert(xhr.responseText || 'このコートには既に予約が存在するため編集・更新できません。');
+            } else {
+              alert('保存処理に失敗しました。');
+            }
+          }
+        });
+      }
+
+      // 7. フォームクリア
+      function handleClear() {
+        $('#editingCourtId').val('');
+        $('#courtForm')[0].reset();
+        $('#formTitle').text('新規コート登録');
+        $('#btnSubmit').text('保存');
+      }
+
+      // XSS対策用エスケープ関数
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+    });
+  </script>
+</body>
+</html>s

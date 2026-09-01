@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>予約一覧 - テニスコート予約管理システム</title>
+  <!-- jQuery (CDN) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="font-family: sans-serif; margin: 0; background-color: #f8f9fa;">
+
+  <!-- 共通ヘッダー読み込みエリア -->
+  <div id="headerContainer"></div>
+
+  <div style="display: flex;">
+    <!-- 共通サイドバー読み込みエリア -->
+    <div id="sidebarContainer"></div>
+
+    <!-- メインコンテンツ -->
+    <main style="padding: 20px; flex: 1;">
+      <!-- 画面タイトル -->
+      <h2 style="margin-top: 0; margin-bottom: 20px; color: #333;">予約一覧</h2>
+
+      <!-- 検索フォームエリア -->
+      <div
+        style="
+          border-radius: 8px;
+          padding: 10px 0 20px 0;
+          margin-bottom: 20px;
+          background-color: #fff;
+          max-width: 450px;
+        "
+      >
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          <!-- 利用日 -->
+          <div style="display: flex; align-items: center;">
+            <label style="width: 100px; font-weight: bold;">利用日：</label>
+            <input
+              type="date"
+              id="dateFilter"
+              style="padding: 6px; font-size: 14px; border: 1px solid #333; border-radius: 4px; width: 180px;"
+            />
+          </div>
+
+          <!-- ステータス -->
+          <div style="display: flex; align-items: center;">
+            <label style="width: 100px; font-weight: bold;">ステータス：</label>
+            <select
+              id="statusFilter"
+              style="padding: 6px; font-size: 14px; border: 1px solid #333; border-radius: 4px; width: 180px;"
+            >
+              <option value="すべて">すべて</option>
+              <option value="予約済">予約済</option>
+              <option value="来店済">来店済</option>
+              <option value="キャンセル">キャンセル</option>
+            </select>
+          </div>
+
+          <!-- リセット / 検索 ボタン -->
+          <div style="display: flex; gap: 12px; justify-content: flex-start; margin-left: 100px; margin-top: 5px;">
+            <button
+              type="button"
+              id="btnReset"
+              style="
+                background-color: #fff;
+                color: #333;
+                border: 1px solid #333;
+                border-radius: 4px;
+                padding: 6px 20px;
+                font-size: 14px;
+                cursor: pointer;
+              "
+            >
+              リセット
+            </button>
+            <button
+              type="button"
+              id="btnSearch"
+              style="
+                background-color: #00a0e9;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 24px;
+                font-size: 14px;
+                font-weight: bold;
+                cursor: pointer;
+              "
+            >
+              検索
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 一覧テーブルエリア -->
+      <div style="padding: 10px 0; background-color: #fff;">
+        <h3 style="margin: 0 0 15px 0;">■ 予約一覧</h3>
+        <p id="loadingText" style="text-align: center; color: #666;">データを読み込み中...</p>
+
+        <table
+          id="reservationTable"
+          style="
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #333;
+            text-align: center;
+            display: none;
+          "
+        >
+          <thead>
+            <tr style="background-color: #d4edda; border-bottom: 1px solid #333;">
+              <th style="border: 1px solid #333; padding: 10px;">予約ID</th>
+              <th style="border: 1px solid #333; padding: 10px;">予約者名</th>
+              <th style="border: 1px solid #333; padding: 10px;">コート名</th>
+              <th style="border: 1px solid #333; padding: 10px;">利用日時</th>
+              <th style="border: 1px solid #333; padding: 10px;">合計金額</th>
+              <th style="border: 1px solid #333; padding: 10px;">ステータス</th>
+              <th style="border: 1px solid #333; padding: 10px;">ステータス更新</th>
+            </tr>
+          </thead>
+          <tbody id="reservationTableBody">
+            <!-- JavaScriptで動的描画 -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript ロジック -->
+  <script>
+    $(document).ready(function () {
+      const API_BASE_URL = 'http://localhost:8080/api';
+      let allReservations = [];
+
+      // 適用済みの検索条件ステート
+      let appliedDate = '';
+      let appliedStatus = 'すべて';
+
+      // 共通コンポーネント読み込み
+      $('#headerContainer').load('../components/header.html');
+      $('#sidebarContainer').load('../components/sidebar.html');
+
+      // 初期データ取得
+      fetchReservations();
+
+      // イベントバインド
+      $('#btnSearch').on('click', handleSearch);
+      $('#btnReset').on('click', handleReset);
+
+      // 1. 全予約一覧の取得
+      function fetchReservations() {
+        $('#loadingText').show();
+        $('#reservationTable').hide();
+
+        $.ajax({
+          url: `${API_BASE_URL}/reservations`,
+          type: 'GET',
+          dataType: 'json',
+          success: function (data) {
+            allReservations = data || [];
+            renderTable();
+          },
+          error: function (xhr, status, error) {
+            console.error(error);
+            alert('予約データの取得に失敗しました。バックエンドの状態を確認してください。');
+          },
+          complete: function () {
+            $('#loadingText').hide();
+            $('#reservationTable').show();
+          }
+        });
+      }
+
+      // 2. 検索実行
+      function handleSearch() {
+        appliedDate = $('#dateFilter').val();
+        appliedStatus = $('#statusFilter').val();
+        renderTable();
+      }
+
+      // 3. リセット実行
+      function handleReset() {
+        $('#dateFilter').val('');
+        $('#statusFilter').val('すべて');
+        appliedDate = '';
+        appliedStatus = 'すべて';
+        renderTable();
+      }
+
+      // 4. テーブル描画処理
+      function renderTable() {
+        const $tbody = $('#reservationTableBody');
+        $tbody.empty();
+
+        // フィルタリング処理
+        const filteredReservations = allReservations.filter(function (res) {
+          const matchesDate = appliedDate === '' || res.date === appliedDate;
+
+          let matchesStatus = true;
+          if (appliedStatus === '予約済') matchesStatus = res.status === 'confirmed';
+          if (appliedStatus === '来店済') matchesStatus = res.status === 'completed';
+          if (appliedStatus === 'キャンセル') matchesStatus = res.status === 'cancelled';
+
+          return matchesDate && matchesStatus;
+        });
+
+        if (filteredReservations.length === 0) {
+          $tbody.append(`
+            <tr>
+              <td colSpan="7" style="padding: 20px; color: #666;">
+                条件に一致する予約データがありません。
+              </td>
+            </tr>
+          `);
+          return;
+        }
+
+        filteredReservations.forEach(function (res) {
+          let statusText = '';
+          if (res.status === 'confirmed') statusText = '予約済';
+          if (res.status === 'completed') statusText = '来店済';
+          if (res.status === 'cancelled') statusText = 'キャンセル';
+
+          const priceText = res.totalPrice ? `¥${res.totalPrice.toLocaleString()}` : '¥0';
+          const isConfirmed = res.status === 'confirmed';
+
+          const $tr = $(`
+            <tr style="border-bottom: 1px solid #333;">
+              <td style="border: 1px solid #333; padding: 12px;">${res.id}</td>
+              <td style="border: 1px solid #333; padding: 12px;">${escapeHtml(res.userName || '未登録')}</td>
+              <td style="border: 1px solid #333; padding: 12px;">${escapeHtml(res.courtName || '')}</td>
+              <td style="border: 1px solid #333; padding: 12px;">${res.date || ''} ${res.timeSlot || ''}</td>
+              <td style="border: 1px solid #333; padding: 12px;">${priceText}</td>
+              <td style="border: 1px solid #333; padding: 12px;">${statusText}</td>
+              <td style="border: 1px solid #333; padding: 12px;">
+                <button
+                  class="btn-mark-visited"
+                  ${!isConfirmed ? 'disabled' : ''}
+                  style="
+                    background-color: ${isConfirmed ? '#e2e3e5' : '#f8f9fa'};
+                    color: ${isConfirmed ? '#333' : '#aaa'};
+                    border: 1px solid #333;
+                    border-radius: 4px;
+                    padding: 4px 16px;
+                    cursor: ${isConfirmed ? 'pointer' : 'not-allowed'};
+                  "
+                >
+                  来店済
+                </button>
+              </td>
+            </tr>
+          `);
+
+          // ボタンクリックイベントのバインド
+          if (isConfirmed) {
+            $tr.find('.btn-mark-visited').on('click', function () {
+              handleMarkAsVisited(res.id);
+            });
+          }
+
+          $tbody.append($tr);
+        });
+      }
+
+      // 5. ステータスを「来店済」へ更新する処理
+      function handleMarkAsVisited(id) {
+        $.ajax({
+          url: `${API_BASE_URL}/reservations/${id}/status`,
+          type: 'PUT',
+          contentType: 'application/json',
+          data: JSON.stringify({ status: 'completed' }),
+          success: function () {
+            alert('ステータスを「来店済」に更新しました');
+            fetchReservations(); // 再取得して画面描画を更新
+          },
+          error: function (xhr, status, error) {
+            console.error(error);
+            alert('ステータス更新に失敗しました。');
+          }
+        });
+      }
+
+      // XSS対策用エスケープ関数
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. データベースコンテナ (MySQL)
   db:
@@ -33,22 +31,15 @@ services:
     depends_on:
       - db
 
-# 3. フロントエンドコンテナ (React / Vite)
+  # 3. HTML / jQuery 用フロントエンドコンテナ (Nginx)
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: nginx:alpine
     container_name: tennis-frontend
     ports:
-      - "5173:5173"
+      - "3000:80"
     volumes:
-      # フロントエンド直下の全ファイルを同期
-      - ./frontend:/app
-      # コンテナ内の node_modules がローカルで上書きされないよう保護
-      - /app/node_modules
-    environment:
-      # Windows環境等でホットリロードを確実に効かせる設定
-      - WATCHPACK_POLLING=true
+      # ./frontend/jquery ディレクトリを Nginx の公開領域ルートにマウント
+      - ./frontend/jquery:/usr/share/nginx/html
     depends_on:
       - backend
 

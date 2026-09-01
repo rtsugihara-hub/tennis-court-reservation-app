@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>コート検索・一覧 - テニスコート予約システム</title>
+  <!-- jQuery (CDN) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="font-family: sans-serif; margin: 0; background-color: #f8f9fa;">
+
+  <!-- 共通ヘッダー読み込みエリア -->
+  <div id="headerContainer"></div>
+
+  <div style="display: flex;">
+    <!-- 共通サイドバー読み込みエリア -->
+    <div id="sidebarContainer"></div>
+
+    <!-- メインコンテンツ -->
+    <main style="padding: 20px; flex: 1;">
+      <!-- 画面タイトル -->
+      <h2 style="margin-top: 0; margin-bottom: 20px; color: #333;">コート検索・一覧</h2>
+
+      <!-- 検索フォームエリア -->
+      <div
+        style="
+          border-radius: 8px;
+          padding: 10px 0 20px 0;
+          margin-bottom: 20px;
+          background-color: #fff;
+          max-width: 600px;
+        "
+      >
+        <div style="display: flex; flex-direction: column; gap: 15px; max-width: 350px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <label style="font-weight: bold;">コート種別：</label>
+            <select
+              id="typeFilter"
+              style="width: 180px; padding: 6px; font-size: 14px; border: 1px solid #333;"
+            >
+              <option value="すべて">すべて</option>
+              <option value="オムニ">オムニ</option>
+              <option value="クレー">クレー</option>
+              <option value="ハード">ハード</option>
+              <option value="人工芝">人工芝</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <label style="font-weight: bold;">屋内外：</label>
+            <select
+              id="locationFilter"
+              style="width: 180px; padding: 6px; font-size: 14px; border: 1px solid #333;"
+            >
+              <option value="すべて">すべて</option>
+              <option value="屋内">屋内</option>
+              <option value="屋外">屋外</option>
+            </select>
+          </div>
+
+          <div style="text-align: right; margin-top: 10px;">
+            <button
+              type="button"
+              id="btnSearch"
+              style="
+                background-color: #00a0e9;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 24px;
+                font-size: 15px;
+                font-weight: bold;
+                cursor: pointer;
+              "
+            >
+              検索
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 一覧テーブルエリア -->
+      <div style="border-radius: 8px; padding: 10px 0; background-color: #fff;">
+        <h3 style="margin: 0 0 15px 0;">■ コート一覧</h3>
+        <p id="loadingText" style="text-align: center; color: #666;">データを読み込み中...</p>
+
+        <table
+          id="courtTable"
+          style="
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #333;
+            text-align: center;
+            display: none;
+          "
+        >
+          <thead>
+            <tr style="background-color: #d4edda; border-bottom: 1px solid #333;">
+              <th style="border: 1px solid #333; padding: 12px; font-size: 16px;">コート名</th>
+              <th style="border: 1px solid #333; padding: 12px; font-size: 16px;">コート種別</th>
+              <th style="border: 1px solid #333; padding: 12px; font-size: 16px;">屋内外</th>
+              <th style="border: 1px solid #333; padding: 12px; font-size: 16px;">利用日時</th>
+              <th style="border: 1px solid #333; padding: 12px; font-size: 16px;">利用料金</th>
+              <th style="border: 1px solid #333; padding: 12px; font-size: 16px;">概要・説明</th>
+              <th style="border: 1px solid #333; padding: 12px; font-size: 16px;">詳細</th>
+            </tr>
+          </thead>
+          <tbody id="courtTableBody">
+            <!-- JavaScriptで動的描画 -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript ロジック -->
+  <script>
+    $(document).ready(function () {
+      const API_BASE_URL = 'http://localhost:8080/api';
+      let allCourts = [];
+
+      let appliedType = 'すべて';
+      let appliedLocation = 'すべて';
+
+      // 共通コンポーネント読み込み
+      $('#headerContainer').load('../components/header.html');
+      $('#sidebarContainer').load('../components/sidebar.html');
+
+      // 1. ログインチェック
+      const userStr = localStorage.getItem('currentUser');
+      if (!userStr) {
+        alert('ログインが必要です。');
+        window.location.href = '../login.html';
+        return;
+      }
+
+      // 初期データ取得
+      fetchCourts();
+
+      // イベントバインド
+      $('#btnSearch').on('click', handleSearch);
+
+      // 2. コート一覧取得 API 実行
+      function fetchCourts() {
+        $('#loadingText').show();
+        $('#courtTable').hide();
+
+        $.ajax({
+          url: `${API_BASE_URL}/courts`,
+          type: 'GET',
+          dataType: 'json',
+          success: function (data) {
+            allCourts = data || [];
+            renderTable();
+          },
+          error: function (xhr, status, error) {
+            console.error(error);
+            alert('コート情報の取得に失敗しました。バックエンドが起動しているか確認してください。');
+          },
+          complete: function () {
+            $('#loadingText').hide();
+            $('#courtTable').show();
+          }
+        });
+      }
+
+      // 3. 検索ボタン押下処理
+      function handleSearch() {
+        appliedType = $('#typeFilter').val();
+        appliedLocation = $('#locationFilter').val();
+        renderTable();
+      }
+
+      // 4. テーブル描画処理
+      function renderTable() {
+        const $tbody = $('#courtTableBody');
+        $tbody.empty();
+
+        // フィルタリング処理
+        const filteredCourts = allCourts.filter(function (court) {
+          // 削除済みデータおよび非公開データ（available以外）を除外
+          if (court.isDeleted || court.status !== 'available') return false;
+
+          const matchesType = appliedType === 'すべて' || court.type === appliedType;
+          const matchesLocation =
+            appliedLocation === 'すべて'
+              ? true
+              : appliedLocation === '屋内'
+              ? court.isIndoor
+              : !court.isIndoor;
+
+          return matchesType && matchesLocation;
+        });
+
+        if (filteredCourts.length === 0) {
+          $tbody.append(`
+            <tr>
+              <td colspan="7" style="padding: 20px; color: #666; font-size: 16px;">
+                条件に一致するコートが見つかりませんでした。
+              </td>
+            </tr>
+          `);
+          return;
+        }
+
+        filteredCourts.forEach(function (court) {
+          const isIndoorText = court.isIndoor ? '屋内' : '屋外';
+          const priceText = court.pricePerHour ? `¥${court.pricePerHour.toLocaleString()}` : '¥0';
+
+          const $tr = $(`
+            <tr style="border-bottom: 1px solid #333;">
+              <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${escapeHtml(court.name)}</td>
+              <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${escapeHtml(court.type)}</td>
+              <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${isIndoorText}</td>
+              <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">
+                ${court.date || ''} ${court.timeSlot || ''}
+              </td>
+              <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${priceText}</td>
+              <td style="border: 1px solid #333; padding: 14px; font-size: 16px; text-align: left;">
+                ${escapeHtml(court.description || '')}
+              </td>
+              <td style="border: 1px solid #333; padding: 14px;">
+                <button
+                  class="btn-detail"
+                  style="
+                    background-color: #00a0e9;
+                    color: #fff;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 8px 20px;
+                    font-size: 14px;
+                    font-weight: bold;
+                    cursor: pointer;
+                  "
+                >
+                  詳細
+                </button>
+              </td>
+            </tr>
+          `);
+
+          // 詳細ボタンイベントハンドラ
+          $tr.find('.btn-detail').on('click', function () {
+            sessionStorage.setItem('selectedCourt', JSON.stringify(court));
+            window.location.href = './court-detail.html';
+          });
+
+          $tbody.append($tr);
+        });
+      }
+
+      // XSS対策用エスケープ関数
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+    });
+  </script>
+</body>
+</html>

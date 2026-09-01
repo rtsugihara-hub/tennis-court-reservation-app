@@ -1,0 +1,102 @@
+<aside
+  id="sidebar"
+  style="
+    width: 220px;
+    background-color: #f4f4f4;
+    border-right: 1px solid #ddd;
+    min-height: calc(100vh - 50px);
+    box-sizing: border-box;
+  "
+>
+  <div
+    id="sidebarMenuTitle"
+    style="
+      padding: 10px 16px;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+      color: #666;
+      font-size: 12px;
+    "
+  >
+    メインメニュー
+  </div>
+
+  <nav id="sidebarNav">
+    <!-- 一般ユーザー用メニュー -->
+    <div id="userMenu" style="display: none;">
+      <a href="../user/dashboard.html" class="nav-btn" data-tab="dashboard">ダッシュボード</a>
+      <a href="../user/court-list.html" class="nav-btn" data-tab="courts">コート一覧・予約</a>
+      <a href="../user/my-page.html" class="nav-btn" data-tab="mypage">マイページ</a>
+    </div>
+
+    <!-- 管理者用メニュー -->
+    <div id="adminMenu" style="display: none;">
+      <a href="../admin/admin-court-list.html" class="nav-btn" data-tab="admin-courts">コート登録・編集</a>
+      <a href="../admin/admin-reservation-list.html" class="nav-btn" data-tab="admin-reservations">予約一覧・受付管理</a>
+    </div>
+  </nav>
+</aside>
+
+<style>
+  .nav-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    text-align: left;
+    background-color: transparent;
+    color: #333;
+    border: none;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    box-sizing: border-box;
+  }
+  .nav-btn.active {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+  }
+</style>
+
+<script>
+  $(document).ready(function () {
+    // 1. ユーザー情報から権限チェックとメニュー切替
+    const userStr = localStorage.getItem('currentUser');
+    if (userStr) {
+      const currentUser = JSON.parse(userStr);
+      const isAdmin = currentUser.role === 'admin';
+
+      if (isAdmin) {
+        $('#sidebarMenuTitle').text('管理メニュー');
+        $('#adminMenu').show();
+        $('#userMenu').hide();
+      } else {
+        $('#sidebarMenuTitle').text('メインメニュー');
+        $('#userMenu').show();
+        $('#adminMenu').hide();
+      }
+    }
+
+    // 2. 現在のURLからアクティブなタブを自動判定して判定スタイル適用
+    const currentPath = window.location.pathname;
+
+    $('.nav-btn').removeClass('active');
+    if (currentPath.includes('dashboard.html')) {
+      $('[data-tab="dashboard"]').addClass('active');
+    } else if (currentPath.includes('court-list.html') || currentPath.includes('court-detail.html') || currentPath.includes('reservation-detail.html') || currentPath.includes('reservation-confirm.html') || currentPath.includes('reservation-complete.html')) {
+      $('[data-tab="courts"]').addClass('active');
+    } else if (currentPath.includes('my-page.html')) {
+      $('[data-tab="mypage"]').addClass('active');
+    } else if (currentPath.includes('admin-court-list.html')) {
+      $('[data-tab="admin-courts"]').addClass('active');
+    } else if (currentPath.includes('admin-reservation-list.html')) {
+      $('[data-tab="admin-reservations"]').addClass('active');
+    }
+  });
+
+  // ハンバーガーボタン等からのトグル処理関数
+  function toggleSidebar() {
+    $('#sidebar').toggle();
+  }
+</script>

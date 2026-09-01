@@ -1,0 +1,86 @@
+<header
+  style="
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  "
+>
+  <div style="display: flex; align-items: center; gap: 15px;">
+    <!-- ハンバーガーボタン -->
+    <button
+      id="btnToggleSidebar"
+      aria-label="メニューを開閉"
+      style="
+        background-color: transparent;
+        color: #fff;
+        border: none;
+        padding: 4px;
+        font-size: 22px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        line-height: 1;
+      "
+    >
+      ☰
+    </button>
+    <!-- システム名 -->
+    <h1 style="margin: 0; font-size: 18px; color: #fff;">
+      テニスコート予約システム
+    </h1>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 15px;">
+    <span id="headerUserInfo" style="color: #fff;">
+      <!-- JavaScriptで動的書き換え -->
+    </span>
+    <button
+      id="btnLogout"
+      style="
+        background-color: #6c757d;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        cursor: pointer;
+      "
+    >
+      ログアウト
+    </button>
+  </div>
+</header>
+
+<script>
+  $(document).ready(function () {
+    // 1. localStorage からログインユーザー情報取得
+    const userStr = localStorage.getItem('currentUser');
+    if (userStr) {
+      const currentUser = JSON.parse(userStr);
+      const roleText = currentUser.role === 'admin' ? '管理者' : '一般ユーザー';
+      $('#headerUserInfo').text(`${currentUser.name} 様 (${roleText})`);
+    }
+
+    // 2. ログアウトボタン押下処理
+    $('#btnLogout').on('click', function () {
+      if (window.confirm('ログアウトしますか？')) {
+        localStorage.removeItem('currentUser');
+        sessionStorage.clear();
+        // パス深度に応じてリダイレクト
+        const isSubDir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/user/');
+        window.location.href = isSubDir ? '../login.html' : './login.html';
+      }
+    });
+
+    // 3. サイドバー開閉イベント (サイドバーが存在する場合)
+    $('#btnToggleSidebar').on('click', function () {
+      if (typeof toggleSidebar === 'function') {
+        toggleSidebar();
+      } else {
+        $('#sidebar').toggle();
+      }
+    });
+  });
+</script>

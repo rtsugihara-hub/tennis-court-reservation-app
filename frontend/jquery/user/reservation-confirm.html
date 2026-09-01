@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>予約確認 - テニスコート予約システム</title>
+  <!-- jQuery (CDN) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body style="font-family: sans-serif; margin: 0; background-color: #f8f9fa;">
+
+  <!-- 共通ヘッダー読み込みエリア -->
+  <div id="headerContainer"></div>
+
+  <div style="display: flex;">
+    <!-- 共通サイドバー読み込みエリア -->
+    <div id="sidebarContainer"></div>
+
+    <!-- メインコンテンツ -->
+    <main
+      style="
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      "
+    >
+      <div style="width: 100%; max-width: 600px;">
+        <!-- 画面タイトル -->
+        <h2 style="margin-top: 0; margin-bottom: 20px; color: #333;">予約確認</h2>
+
+        <div
+          style="
+            background-color: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+          "
+        >
+          <h3 style="margin-top: 0; color: #d9534f; border-bottom: 2px solid #d9534f; padding-bottom: 10px;">
+            予約内容の最終確認
+          </h3>
+          <p style="font-size: 14px; color: #555; margin: 16px 0 8px 0;">
+            以下の内容で予約を確定します。よろしいですか？
+          </p>
+
+          <div style="background-color: #f8f9fa; padding: 16px; border-radius: 6px; margin: 20px 0; font-size: 15px;">
+            <!-- 1. 予約者名 -->
+            <p style="margin: 10px 0;">
+              <strong>予約者名：</strong> <span id="userNameText">未設定</span>
+            </p>
+            <!-- 2. コート名 -->
+            <p style="margin: 10px 0;">
+              <strong>コート名：</strong> <span id="courtNameText">-</span>
+            </p>
+            <!-- 3. コート種別 -->
+            <p style="margin: 10px 0;">
+              <strong>コート種別：</strong> <span id="courtTypeText">-</span>
+            </p>
+            <!-- 4. 屋内/屋外 -->
+            <p style="margin: 10px 0;">
+              <strong>屋内/屋外：</strong> <span id="indoorText">-</span>
+            </p>
+            <!-- 5. 利用日時 -->
+            <p style="margin: 10px 0;">
+              <strong>利用日時：</strong> <span id="dateTimeText">-</span>
+            </p>
+            <!-- 6. お支払い金額 -->
+            <p style="margin: 10px 0;">
+              <strong>お支払い金額：</strong> ¥<span id="priceText">0</span>
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+            <!-- 修正するボタン -->
+            <button
+              type="button"
+              id="btnBack"
+              style="
+                padding: 8px 20px;
+                background-color: #6c757d;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+              "
+            >
+              修正する
+            </button>
+            <!-- 予約確定ボタン -->
+            <button
+              type="button"
+              id="btnConfirm"
+              style="
+                padding: 8px 24px;
+                background-color: #28a745;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: bold;
+              "
+            >
+              この内容で予約を確定する
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript ロジック -->
+  <script>
+    $(document).ready(function () {
+      const API_BASE_URL = 'http://localhost:8080/api';
+      let isLoading = false;
+
+      // 共通コンポーネント読み込み
+      $('#headerContainer').load('../components/header.html');
+      $('#sidebarContainer').load('../components/sidebar.html');
+
+      // 1. ログインチェック
+      const userStr = localStorage.getItem('currentUser');
+      if (!userStr) {
+        alert('ログイン情報が見つかりません。再ログインしてください。');
+        window.location.href = '../login.html';
+        return;
+      }
+      const currentUser = JSON.parse(userStr);
+
+      // 2. 選択されたコート情報の復元 (sessionStorage)
+      const selectedCourtStr = sessionStorage.getItem('selectedCourt');
+      if (!selectedCourtStr) {
+        alert('予約情報が見つかりません。コート選択からやり直してください。');
+        window.location.href = './court-list.html';
+        return;
+      }
+      const selectedCourt = JSON.parse(selectedCourtStr);
+
+      // 画面要素への値のセット
+      $('#userNameText').text(currentUser.name ? `${currentUser.name} 様` : '未設定');
+      $('#courtNameText').text(selectedCourt.name || '-');
+      $('#courtTypeText').text(selectedCourt.type || '-');
+      $('#indoorText').text(selectedCourt.isIndoor ? '屋内' : '屋外');
+      $('#dateTimeText').text(`${selectedCourt.date || ''} ${selectedCourt.timeSlot || ''}`);
+      $('#priceText').text(selectedCourt.pricePerHour ? selectedCourt.pricePerHour.toLocaleString() : '0');
+
+      // 3. イベントバインド
+      $('#btnBack').on('click', function () {
+        if (!isLoading) {
+          window.location.href = './court-detail.html';
+        }
+      });
+
+      $('#btnConfirm').on('click', handleConfirmReservation);
+
+      // 4. 予約確定処理 (API通信)
+      function handleConfirmReservation() {
+        if (isLoading) return; // 多重送信防止
+
+        if (!currentUser || !currentUser.id) {
+          alert('ログイン情報が見つかりません。再ログインしてください。');
+          return;
+        }
+
+        setLoadingState(true);
+
+        const reservationPayload = {
+          userId: currentUser.id,
+          userName: currentUser.name,
+          courtId: selectedCourt.id,
+          courtName: selectedCourt.name,
+          date: selectedCourt.date,
+          timeSlot: selectedCourt.timeSlot,
+          totalPrice: selectedCourt.pricePerHour,
+          status: 'confirmed'
+        };
+
+        $.ajax({
+          url: `${API_BASE_URL}/reservations`,
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify(reservationPayload),
+          success: function () {
+            sessionStorage.removeItem('selectedCourt');
+            window.location.href = './reservation-complete.html';
+          },
+          error: function (xhr, status, error) {
+            console.error('予約処理エラー:', error);
+            if (xhr.status === 409) {
+              alert('申し訳ありません。ご指定のコート・日時は既に予約されています。別の枠をお選びください。');
+              window.location.href = './court-list.html';
+            } else {
+              alert('予約の確定処理に失敗しました。時間をおいて再度お試しください。');
+            }
+          },
+          complete: function () {
+            setLoadingState(false);
+          }
+        });
+      }
+
+      // ローディング状態制御関数
+      function setLoadingState(loading) {
+        isLoading = loading;
+        const $btnConfirm = $('#btnConfirm');
+        const $btnBack = $('#btnBack');
+
+        if (loading) {
+          $btnConfirm
+            .prop('disabled', true)
+            .css({ 'background-color': '#6c757d', 'cursor': 'not-allowed' })
+            .text('処理中...');
+          $btnBack.prop('disabled', true).css('cursor', 'not-allowed');
+        } else {
+          $btnConfirm
+            .prop('disabled', false)
+            .css({ 'background-color': '#28a745', 'cursor': 'pointer' })
+            .text('この内容で予約を確定する');
+          $btnBack.prop('disabled', false).css('cursor', 'pointer');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
