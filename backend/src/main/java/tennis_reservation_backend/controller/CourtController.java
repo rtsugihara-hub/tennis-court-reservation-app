@@ -39,10 +39,16 @@ public class CourtController {
 
     // 4. ★ 追加：コート更新 API (PUT)
     @PutMapping("/{id}")
-    public ResponseEntity<Court> updateCourt(@PathVariable Long id, @RequestBody Court court) {
-        court.setId(id);
-        Court updatedCourt = courtService.saveCourt(court);
-        return ResponseEntity.ok(updatedCourt);
+    public ResponseEntity<?> updateCourt(@PathVariable Long id, @RequestBody Court court) {
+        try {
+            court.setId(id);
+            Court updated = courtService.saveCourt(court);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("更新処理中にエラーが発生しました。");
+        }
     }
 
     // 5. コート削除 API (DELETE)
@@ -51,6 +57,8 @@ public class CourtController {
         try {
             courtService.deleteCourtById(id);
             return ResponseEntity.noContent().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("コートの削除処理中にエラーが発生しました。");

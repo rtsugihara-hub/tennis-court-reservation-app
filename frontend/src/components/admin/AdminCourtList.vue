@@ -165,6 +165,7 @@
               <td style="border: 1px solid #333; padding: 10px; text-align: left;">{{ court.description }}</td>
               <td style="border: 1px solid #333; padding: 10px;">
                 <div style="display: flex; gap: 8px; justify-content: center;">
+                  <!-- 編集ボタン（常にクリック可能） -->
                   <button
                     @click="handleEdit(court)"
                     style="background-color: #00a0e9; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;"
@@ -196,10 +197,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import type { Court } from '../../types';
+import type { Court, Reservation } from '../../types';
 
 const courts = ref<Court[]>([]);
-const editingCourtId = ref<string | null>(null);
+const reservations = ref<Reservation[]>([]);
+const editingCourtId = ref<number | string | null>(null);
 const loading = ref<boolean>(true);
 
 // フォームステート
@@ -212,24 +214,39 @@ const price = ref('');
 const status = ref('');
 const description = ref('');
 
-const loadCourts = async () => {
+// コート一覧・予約一覧の同時取得
+const loadData = async () => {
   try {
     loading.value = true;
-    const response = await fetch('http://localhost:8080/api/courts');
-    if (!response.ok) throw new Error('コート一覧の取得に失敗しました');
-    const data: Court[] = await response.json();
-    courts.value = data;
+    const [courtRes, reservationRes] = await Promise.all([
+      fetch('http://localhost:8080/api/courts'),
+      fetch('http://localhost:8080/api/reservations')
+    ]);
+
+    if (!courtRes.ok || !reservationRes.ok) {
+      throw new Error('データの取得に失敗しました');
+    }
+
+    courts.value = await courtRes.json();
+    reservations.value = await reservationRes.json();
   } catch (error) {
     console.error(error);
-    alert('コート情報の取得に失敗しました。');
+    alert('情報の取得に失敗しました。');
   } finally {
     loading.value = false;
   }
 };
 
 onMounted(() => {
-  loadCourts();
+  loadData();
 });
+
+// アクティブな予約（ステータスが cancelled 以外）の判定関数
+const hasActiveReservations = (courtId: number | string): boolean => {
+  return reservations.value.some(
+    (res) => String(res.courtId) === String(courtId) && res.status !== 'cancelled'
+  );
+};
 
 const handleClear = () => {
   editingCourtId.value = null;
@@ -243,7 +260,12 @@ const handleClear = () => {
   description.value = '';
 };
 
+// 編集ボタン押下時ハンドラ
 const handleEdit = (court: Court) => {
+  if (hasActiveReservations(court.id)) {
+    alert('指定されたコートには既に予約が存在するため、コート情報を編集できません。');
+    return;
+  }
   editingCourtId.value = court.id;
   name.value = court.name;
   type.value = court.type;
@@ -255,24 +277,30 @@ const handleEdit = (court: Court) => {
   description.value = court.description;
 };
 
-const handleDelete = async (id: string) => {
+// 削除処理
+const handleDelete = async (id: number | string) => {
   if (!window.confirm('このコート情報を削除しますか？')) return;
 
   try {
     const response = await fetch(`http://localhost:8080/api/courts/${id}`, {
       method: 'DELETE',
     });
-    if (!response.ok) throw new Error('削除に失敗しました');
+
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(errorMessage || '削除に失敗しました');
+    }
 
     alert('削除しました');
     if (editingCourtId.value === id) handleClear();
-    loadCourts();
-  } catch (error) {
+    loadData();
+  } catch (error: any) {
     console.error(error);
-    alert('削除処理に失敗しました。');
+    alert(error.message || '削除処理に失敗しました。');
   }
 };
 
+// 保存・更新処理
 const handleSave = async () => {
   if (
     !name.value ||
@@ -284,6 +312,11 @@ const handleSave = async () => {
     !status.value
   ) {
     alert('必須項目をすべて入力してください。');
+    return;
+  }
+
+  if (editingCourtId.value && hasActiveReservations(editingCourtId.value)) {
+    alert('指定されたコートには既に予約が存在するため、コート情報を編集できません。');
     return;
   }
 
@@ -316,15 +349,16 @@ const handleSave = async () => {
     });
 
     if (!response.ok) {
-      throw new Error('保存に失敗しました');
+      const errorMessage = await response.text();
+      throw new Error(errorMessage || '保存に失敗しました');
     }
 
     alert(editingCourtId.value ? '更新しました' : '登録しました');
     handleClear();
-    loadCourts();
-  } catch (error) {
+    loadData();
+  } catch (error: any) {
     console.error(error);
-    alert('保存処理に失敗しました。');
+    alert(error.message || '保存処理に失敗しました。');
   }
 };
 
