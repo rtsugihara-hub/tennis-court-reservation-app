@@ -3,6 +3,7 @@ package tennis_reservation_backend.controller;
 import tennis_reservation_backend.entity.Court;
 import tennis_reservation_backend.service.CourtService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,10 +45,15 @@ public class CourtController {
         return ResponseEntity.ok(updatedCourt);
     }
 
-    // 5. ★ 追加：コート削除 API (DELETE)
+    // 5. コート削除 API (DELETE)
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCourt(@PathVariable Long id) {
-        courtService.deleteCourtById(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteCourt(@PathVariable Long id) {
+        try {
+            courtService.deleteCourtById(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("コートの削除処理中にエラーが発生しました。");
+        }
     }
 }

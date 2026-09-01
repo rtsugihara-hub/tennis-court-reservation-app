@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  # 1. データベースコンテナ (MySQL)
+# 1. データベースコンテナ (MySQL)
   db:
     image: mysql:8.0
     container_name: tennis-db
@@ -14,10 +12,16 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      # backend/sql/create_table.sql を自動実行するように設定
-      - ./backend/sql/create_table.sql:/docker-entrypoint-initdb.d/create_table.sql
+      # 01でテーブル作成、02で初期データ投入
+      - ./backend/sql/create_tables.sql:/docker-entrypoint-initdb.d/01_create_tables.sql
+      - ./backend/sql/insert_data.sql:/docker-entrypoint-initdb.d/02_insert_data.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user", "-ppassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
-  # 2. バックエンドコンテナ (Java / Spring Boot)
+# 2. バックエンドコンテナ (Java / Spring Boot)
   backend:
     build:
       context: ./backend
@@ -26,14 +30,16 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/tennis_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/tennis_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # Hibernateによるテーブル自動変更を停止 (none に変更)
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
-# 3. フロントエンドコンテナ (React / Vite)
+  # 3. フロントエンドコンテナ (Vue 3 / Vite)
   frontend:
     build:
       context: ./frontend
@@ -42,16 +48,12 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      # フロントエンド直下の全ファイルを同期
       - ./frontend:/app
-      # コンテナ内の node_modules がローカルで上書きされないよう保護
       - /app/node_modules
     environment:
-      # Windows環境等でホットリロードを確実に効かせる設定
       - WATCHPACK_POLLING=true
     depends_on:
       - backend
 
-# データ永続化用のボリューム定義
 volumes:
   mysql_data:

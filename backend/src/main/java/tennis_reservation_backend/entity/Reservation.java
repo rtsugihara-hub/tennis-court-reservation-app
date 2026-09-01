@@ -13,9 +13,17 @@ public class Reservation {
     private Long id;
 
     private Long userId;
+
+    // ★ DBのカラムから除外するため @Transient を付与
+    @Transient
     private String userName;
+
     private Long courtId;
+
+    // ★ DBのカラムから除外するため @Transient を付与
+    @Transient
     private String courtName;
+
     private String date;
     private String timeSlot;
     private Integer totalPrice;
@@ -36,7 +44,7 @@ public class Reservation {
         this.updatedAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    // --- ゲッター / セッター ---
+    // --- ゲッター / セッター （既存のままでOK） ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
