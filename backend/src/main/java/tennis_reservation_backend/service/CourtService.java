@@ -16,7 +16,7 @@ public class CourtService {
     private CourtRepository courtRepository;
 
     @Autowired
-    private ReservationRepository reservationRepository; // ★ 追加
+    private ReservationRepository reservationRepository;
 
     public List<Court> getAllCourts() {
         return courtRepository.findAll();
@@ -26,7 +26,14 @@ public class CourtService {
         return courtRepository.findById(id);
     }
 
+    // ★ 保存・更新処理（更新時の予約チェック付き）
     public Court saveCourt(Court court) {
+        if (court.getId() != null) {
+            boolean hasActiveReservations = reservationRepository.existsByCourtIdAndStatusNot(court.getId(), "cancelled");
+            if (hasActiveReservations) {
+                throw new IllegalStateException("このコートには既に予約が存在するため編集・更新できません。");
+            }
+        }
         return courtRepository.save(court);
     }
 

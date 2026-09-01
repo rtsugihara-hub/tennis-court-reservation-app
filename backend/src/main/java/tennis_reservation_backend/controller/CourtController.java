@@ -30,22 +30,30 @@ public class CourtController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // 3. ★ 追加：コート新規登録 API (POST)
+    // 3. コート新規登録 API (POST)
     @PostMapping
     public ResponseEntity<Court> createCourt(@RequestBody Court court) {
         Court savedCourt = courtService.saveCourt(court);
         return ResponseEntity.ok(savedCourt);
     }
 
-    // 4. ★ 追加：コート更新 API (PUT)
+    // 4. ★ 修正：コート更新 API (PUT)
     @PutMapping("/{id}")
-    public ResponseEntity<Court> updateCourt(@PathVariable Long id, @RequestBody Court court) {
-        court.setId(id);
-        Court updatedCourt = courtService.saveCourt(court);
-        return ResponseEntity.ok(updatedCourt);
+    public ResponseEntity<?> updateCourt(@PathVariable Long id, @RequestBody Court court) {
+        try {
+            court.setId(id);
+            Court updatedCourt = courtService.saveCourt(court);
+            return ResponseEntity.ok(updatedCourt);
+        } catch (IllegalStateException e) {
+            // 予約が存在して編集・更新できない場合：409 Conflict を返却
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("コートの更新処理中にエラーが発生しました。");
+        }
     }
 
-    // コート削除 API (DELETE)
+    // 5. コート削除 API (DELETE)
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCourt(@PathVariable Long id) {
         try {
