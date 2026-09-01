@@ -48,8 +48,8 @@ export const AdminReservationList: React.FC = () => {
     setAppliedStatus('すべて');
   };
 
-  // 「予約済」から「来店済」へのステータス更新処理 (API通信)
-  const handleMarkAsVisited = async (id: string) => {
+  // ★ 「予約済」から「来店済」へのステータス更新処理 (API通信)
+  const handleMarkAsVisited = async (id: number | string) => {
     try {
       const response = await fetch(`http://localhost:8080/api/reservations/${id}/status`, {
         method: 'PUT',

@@ -13,9 +13,17 @@ public class Reservation {
     private Long id;
 
     private Long userId;
+
+    // ★ DBのカラム検索対象から除外するため @Transient を付与
+    @Transient
     private String userName;
+
     private Long courtId;
+
+    // ★ DBのカラム検索対象から除外するため @Transient を付与
+    @Transient
     private String courtName;
+
     private String date;
     private String timeSlot;
     private Integer totalPrice;

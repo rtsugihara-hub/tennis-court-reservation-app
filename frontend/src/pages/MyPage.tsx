@@ -1,3 +1,4 @@
+// src/pages/MyPage.tsx
 import React, { useState, useEffect } from 'react';
 import type { User, Reservation } from '../types';
 
@@ -29,11 +30,32 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onSelectReservation
     fetchReservations();
   }, [currentUser]);
 
+  // ★ ステータスの表示テキスト変換関数
+  const getStatusText = (status?: string) => {
+    if (status === 'completed' || status === '利用済' || status === '来店済') return '利用済';
+    if (status === 'cancelled' || status === 'キャンセル') return 'キャンセル';
+    return '予約確定';
+  };
+
+  // ★ ステータスに応じたバッジスタイルの判定関数
+  const getStatusBadgeStyle = (status?: string) => {
+    // 利用済 (グレー)
+    if (status === 'completed' || status === '利用済' || status === '来店済') {
+      return { backgroundColor: '#e2e3e5', color: '#41464b', borderColor: '#d3d6d8' };
+    }
+    // キャンセル (赤)
+    if (status === 'cancelled' || status === 'キャンセル') {
+      return { backgroundColor: '#f8d7da', color: '#842029', borderColor: '#f5c2c7' };
+    }
+    // 予約確定 (緑)
+    return { backgroundColor: '#d4edda', color: '#0f5132', borderColor: '#badbcc' };
+  };
+
   return (
     <div style={{ padding: '20px', flex: 1 }}>
       <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#333' }}>マイページ</h2>
 
-      {/* ■ 会員情報エリア（文字サイズ拡大） */}
+      {/* ■ 会員情報エリア */}
       <div style={{ marginBottom: '30px' }}>
         <h3 style={{ margin: '0 0 15px 0', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
           会員情報
@@ -78,7 +100,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onSelectReservation
             <tbody>
               {reservations.length > 0 ? (
                 reservations.map((res) => {
-                  const isCancelled = res.status === 'cancelled' || res.status === 'キャンセル';
+                  const badgeStyle = getStatusBadgeStyle(res.status);
                   return (
                     <tr key={res.id} style={{ borderBottom: '1px solid #333' }}>
                       <td style={{ border: '1px solid #333', padding: '14px', fontSize: '16px' }}>{res.id}</td>
@@ -90,7 +112,7 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onSelectReservation
                         ¥{res.totalPrice?.toLocaleString()}
                       </td>
 
-                      {/* ■ ステータス（バッジサイズ拡大） */}
+                      {/* ■ ステータス（予約確定 / 利用済 / キャンセル） */}
                       <td style={{ border: '1px solid #333', padding: '14px' }}>
                         <span
                           style={{
@@ -99,16 +121,16 @@ export const MyPage: React.FC<MyPageProps> = ({ currentUser, onSelectReservation
                             fontSize: '14px',
                             fontWeight: 'bold',
                             borderRadius: '6px',
-                            backgroundColor: isCancelled ? '#f8d7da' : '#d4edda',
-                            color: isCancelled ? '#842029' : '#0f5132',
-                            border: `1px solid ${isCancelled ? '#f5c2c7' : '#badbcc'}`,
+                            backgroundColor: badgeStyle.backgroundColor,
+                            color: badgeStyle.color,
+                            border: `1px solid ${badgeStyle.borderColor}`,
                           }}
                         >
-                          {isCancelled ? 'キャンセル' : '予約確定'}
+                          {getStatusText(res.status)}
                         </span>
                       </td>
 
-                      {/* ■ 「詳細・変更」ボタン（ボタンサイズ拡大） */}
+                      {/* ■ 「詳細・変更」ボタン */}
                       <td style={{ border: '1px solid #333', padding: '14px' }}>
                         <button
                           onClick={() => onSelectReservation && onSelectReservation(res)}

@@ -4,10 +4,10 @@ import type { Court } from '../../types';
 
 export const AdminCourtList: React.FC = () => {
   const [courts, setCourts] = useState<Court[]>([]);
-  const [editingCourtId, setEditingCourtId] = useState<string | null>(null);
+  const [editingCourtId, setEditingCourtId] = useState<number | string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // フォーム入力用ステート（初期状態をすべて未選択・空値に設定）
+  // フォーム入力用ステート
   const [name, setName] = useState('');
   const [type, setType] = useState('');
   const [isIndoor, setIsIndoor] = useState<boolean | null>(null);
@@ -37,7 +37,7 @@ export const AdminCourtList: React.FC = () => {
     loadCourts();
   }, []);
 
-  // フォームのクリア（すべて空値・未選択にリセット）
+  // フォームのクリア
   const handleClear = () => {
     setEditingCourtId(null);
     setName('');
@@ -63,27 +63,32 @@ export const AdminCourtList: React.FC = () => {
     setDescription(court.description);
   };
 
-  // 削除処理
-  const handleDelete = async (id: string) => {
+  // ★ 削除処理（バックエンドのエラーメッセージ表示対応）
+  const handleDelete = async (id: number | string) => {
     if (!window.confirm('このコート情報を削除しますか？')) return;
 
     try {
       const response = await fetch(`http://localhost:8080/api/courts/${id}`, {
         method: 'DELETE',
       });
-      if (!response.ok) throw new Error('削除に失敗しました');
+
+      if (!response.ok) {
+        // バックエンドからのエラーメッセージ（409 Conflict等）を取得
+        const errorMessage = await response.text();
+        throw new Error(errorMessage || '削除に失敗しました');
+      }
 
       alert('削除しました');
       if (editingCourtId === id) handleClear();
       loadCourts();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('削除処理に失敗しました。');
+      alert(error.message || '削除処理に失敗しました。');
     }
   };
 
-// 保存処理（新規登録 or 編集更新）
-const handleSave = async (e: React.FormEvent) => {
+  // 保存処理（新規登録 or 編集更新）
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 未入力チェック
@@ -104,7 +109,6 @@ const handleSave = async (e: React.FormEvent) => {
       isDeleted: false,
     };
 
-    // ★ 編集時のみ id を指定し、新規登録（POST）時は id キー自体を含めない
     if (editingCourtId) {
       courtDataPayload.id = editingCourtId;
     }

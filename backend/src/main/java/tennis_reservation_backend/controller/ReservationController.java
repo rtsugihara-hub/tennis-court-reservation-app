@@ -7,10 +7,11 @@ import tennis_reservation_backend.entity.Reservation;
 import tennis_reservation_backend.service.ReservationService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reservations")
-@CrossOrigin(origins = "http://localhost:5173") // React側のURL（必要に応じて調整）
+@CrossOrigin(origins = "http://localhost:5173") // React側のURL
 public class ReservationController {
 
     private final ReservationService reservationService;
@@ -52,6 +53,20 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("キャンセルの処理中にエラーが発生しました。");
+        }
+    }
+
+    // ★ ステータス更新 API (PUT /api/reservations/{id}/status)
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateReservationStatus(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        try {
+            String newStatus = request.get("status");
+            Reservation updatedReservation = reservationService.updateStatus(id, newStatus);
+            return ResponseEntity.ok(updatedReservation);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("ステータス更新処理中にエラーが発生しました。");
         }
     }
 }
