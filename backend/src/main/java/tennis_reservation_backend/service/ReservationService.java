@@ -1,6 +1,8 @@
 package tennis_reservation_backend.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tennis_reservation_backend.entity.Court;
 import tennis_reservation_backend.entity.Reservation;
 import tennis_reservation_backend.repository.CourtRepository;
 import tennis_reservation_backend.repository.ReservationRepository;
@@ -42,8 +44,24 @@ public class ReservationService {
         return reservationOpt;
     }
 
+    // ★ 予約作成処理：コートのステータスを 'reserved' に更新
+    @Transactional
     public Reservation save(Reservation reservation) {
-        // 重複チェック処理
+        // 1. 対象コートのステータスチェック（available 以外は予約不可）
+        if (reservation.getCourtId() != null) {
+            Court court = courtRepository.findById(reservation.getCourtId())
+                    .orElseThrow(() -> new IllegalArgumentException("指定されたコートが存在しません。"));
+
+            if (!"available".equals(court.getStatus())) {
+                throw new IllegalArgumentException("指定されたコート・日時は既に予約されているか、利用不可です。");
+            }
+
+            // コートのステータスを reserved (予約済み) に更新
+            court.setStatus("reserved");
+            courtRepository.save(court);
+        }
+
+        // 2. 予約重複チェック処理
         boolean isAlreadyBooked = reservationRepository.existsByCourtIdAndDateAndTimeSlotAndStatusNot(
             reservation.getCourtId(),
             reservation.getDate(),
@@ -55,7 +73,7 @@ public class ReservationService {
             throw new IllegalArgumentException("指定されたコート・日時は既に予約されています。");
         }
 
-        // ステータスの初期値設定
+        // 3. ステータスの初期値設定
         if (reservation.getStatus() == null) {
             reservation.setStatus("confirmed");
         }
@@ -65,28 +83,49 @@ public class ReservationService {
         return savedReservation;
     }
 
+    // ★ キャンセル処理：コートのステータスを 'available' に復元
+    @Transactional
     public Reservation cancelReservation(Long id) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("予約が見つかりません: " + id));
         
+        // 1. 予約ステータスを cancelled に変更
         reservation.setStatus("cancelled");
         Reservation updatedReservation = reservationRepository.save(reservation);
+
+        // 2. 該当コートのステータスを available (利用可能) に戻す
+        if (reservation.getCourtId() != null) {
+            courtRepository.findById(reservation.getCourtId()).ifPresent(court -> {
+                court.setStatus("available");
+                courtRepository.save(court);
+            });
+        }
+
         populateNames(List.of(updatedReservation));
         return updatedReservation;
     }
 
-    // ★ 追加：任意のステータスに更新する処理
+    // ★ ステータス更新処理：管理者キャンセル時等も 'available' に復元
+    @Transactional
     public Reservation updateStatus(Long id, String status) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("予約が見つかりません: " + id));
         
         reservation.setStatus(status);
+
+        // キャンセルに変更された場合はコートを復帰
+        if ("cancelled".equals(status) && reservation.getCourtId() != null) {
+            courtRepository.findById(reservation.getCourtId()).ifPresent(court -> {
+                court.setStatus("available");
+                courtRepository.save(court);
+            });
+        }
+
         Reservation updatedReservation = reservationRepository.save(reservation);
         populateNames(List.of(updatedReservation));
         return updatedReservation;
     }
 
-    // ★ 取得した予約データに対して、UserとCourtの情報から名前をセットする共通処理
     private void populateNames(List<Reservation> reservations) {
         for (Reservation reservation : reservations) {
             if (reservation.getUserId() != null) {
