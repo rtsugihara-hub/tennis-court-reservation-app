@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { User, Court, Reservation } from '../types';
 
 interface DashboardProps {
@@ -47,8 +47,49 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentUser }) => {
   }, [currentUser]);
 
   const availableCourtsCount = courts.filter((c) => !c.isDeleted && c.status === 'available').length;
-  const activeReservations = reservations.filter((res) => res.status !== 'cancelled');
-  const latestReservation = activeReservations.slice(0, 1);
+  
+  // キャンセル以外の有効な予約
+  const activeReservations = useMemo(() => {
+    return reservations.filter((res) => res.status !== 'cancelled');
+  }, [reservations]);
+
+  // ★ 自分の予約の中で「今日以降で最も利用日時が近い予約1件」を取得
+  const latestReservation = useMemo(() => {
+    if (activeReservations.length === 0) return [];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const validReservations = activeReservations.map((r) => {
+      let dateStr = r.date || '';
+      // ハイフン補正 (例: "20260906" -> "2026-09-06")
+      if (/^\d{8}$/.test(dateStr)) {
+        dateStr = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+      }
+
+      const resDate = new Date(dateStr);
+      return {
+        raw: r,
+        resDate,
+        diff: resDate.getTime() - today.getTime(),
+      };
+    }).filter((item) => !isNaN(item.resDate.getTime()));
+
+    if (validReservations.length === 0) return [];
+
+    // 今日以降（diff >= 0）の予約を優先して抽出
+    const futureReservations = validReservations.filter((item) => item.diff >= 0);
+
+    if (futureReservations.length > 0) {
+      // 今日以降で最も日付が近い（diffが最小）予約を選択
+      futureReservations.sort((a, b) => a.diff - b.diff);
+      return [futureReservations[0].raw];
+    } else {
+      // 今日以降の予約がない場合は、過去の中で一番最新の予約を選択
+      validReservations.sort((a, b) => b.diff - a.diff);
+      return [validReservations[0].raw];
+    }
+  }, [activeReservations]);
 
   const getDaysInMonth = (year: number, month: number) => {
     const firstDay = new Date(year, month - 1, 1).getDay();

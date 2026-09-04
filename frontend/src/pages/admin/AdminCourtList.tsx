@@ -1,9 +1,10 @@
 // src/pages/admin/AdminCourtList.tsx
 import React, { useState, useEffect } from 'react';
-import type { Court } from '../../types';
+import type { Court, Reservation } from '../../types';
 
 export const AdminCourtList: React.FC = () => {
   const [courts, setCourts] = useState<Court[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [editingCourtId, setEditingCourtId] = useState<number | string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -17,14 +18,23 @@ export const AdminCourtList: React.FC = () => {
   const [status, setStatus] = useState('');
   const [description, setDescription] = useState('');
 
-  // コート一覧をバックエンドAPIから取得
+  // コート一覧および予約情報をバックエンドAPIから取得
   const loadCourts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/courts');
-      if (!response.ok) throw new Error('コート一覧の取得に失敗しました');
-      const data: Court[] = await response.json();
-      setCourts(data);
+      
+      // 1. コート一覧の取得
+      const courtRes = await fetch('http://localhost:8080/api/courts');
+      if (!courtRes.ok) throw new Error('コート一覧の取得に失敗しました');
+      const courtData: Court[] = await courtRes.json();
+      setCourts(courtData);
+
+      // 2. 予約一覧の取得（編集・削除制限の判定用）
+      const resRes = await fetch('http://localhost:8080/api/reservations');
+      if (resRes.ok) {
+        const resData: Reservation[] = await resRes.json();
+        setReservations(resData);
+      }
     } catch (error) {
       console.error(error);
       alert('コート情報の取得に失敗しました。');
@@ -36,6 +46,16 @@ export const AdminCourtList: React.FC = () => {
   useEffect(() => {
     loadCourts();
   }, []);
+
+  // ★ 対象のコートに有効な予約が入っているかチェックする判定関数
+  const isCourtReserved = (courtId: number | string): boolean => {
+    return reservations.some((r) => {
+      const matchCourt = String(r.courtId) === String(courtId);
+      const rStatus = (r.status || '').toLowerCase();
+      const isActive = rStatus !== 'cancelled' && rStatus !== 'キャンセル' && rStatus !== 'キャンセル済';
+      return matchCourt && isActive;
+    });
+  };
 
   // フォームのクリア
   const handleClear = () => {
@@ -52,6 +72,10 @@ export const AdminCourtList: React.FC = () => {
 
   // 編集モードへのセット
   const handleEdit = (court: Court) => {
+    if (isCourtReserved(court.id)) {
+      alert('予約が存在するコートは編集できません。');
+      return;
+    }
     setEditingCourtId(court.id);
     setName(court.name);
     setType(court.type);
@@ -63,8 +87,13 @@ export const AdminCourtList: React.FC = () => {
     setDescription(court.description);
   };
 
-  // ★ 削除処理（バックエンドのエラーメッセージ表示対応）
+  // 削除処理
   const handleDelete = async (id: number | string) => {
+    if (isCourtReserved(id)) {
+      alert('予約が存在するコートは削除できません。');
+      return;
+    }
+
     if (!window.confirm('このコート情報を削除しますか？')) return;
 
     try {
@@ -73,7 +102,6 @@ export const AdminCourtList: React.FC = () => {
       });
 
       if (!response.ok) {
-        // バックエンドからのエラーメッセージ（409 Conflict等）を取得
         const errorMessage = await response.text();
         throw new Error(errorMessage || '削除に失敗しました');
       }
@@ -91,7 +119,6 @@ export const AdminCourtList: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 未入力チェック
     if (!name || !type || isIndoor === null || !date || !timeSlot || !price || !status) {
       alert('必須項目をすべて入力してください。');
       return;
@@ -303,34 +330,57 @@ export const AdminCourtList: React.FC = () => {
             </thead>
             <tbody>
               {activeCourts.length > 0 ? (
-                activeCourts.map((court) => (
-                  <tr key={court.id} style={{ borderBottom: '1px solid #333' }}>
-                    <td style={{ border: '1px solid #333', padding: '10px' }}>{court.id}</td>
-                    <td style={{ border: '1px solid #333', padding: '10px' }}>{court.name}</td>
-                    <td style={{ border: '1px solid #333', padding: '10px' }}>{court.type}</td>
-                    <td style={{ border: '1px solid #333', padding: '10px' }}>{court.isIndoor ? '屋内' : '屋外'}</td>
-                    <td style={{ border: '1px solid #333', padding: '10px' }}>{court.date} {court.timeSlot}</td>
-                    <td style={{ border: '1px solid #333', padding: '10px' }}>¥{court.pricePerHour?.toLocaleString()}</td>
-                    <td style={{ border: '1px solid #333', padding: '10px' }}>{court.status === 'available' ? '公開中' : '非公開'}</td>
-                    <td style={{ border: '1px solid #333', padding: '10px', textAlign: 'left' }}>{court.description}</td>
-                    <td style={{ border: '1px solid #333', padding: '10px' }}>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                        <button
-                          onClick={() => handleEdit(court)}
-                          style={{ backgroundColor: '#00a0e9', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 12px', cursor: 'pointer' }}
-                        >
-                          編集
-                        </button>
-                        <button
-                          onClick={() => handleDelete(court.id)}
-                          style={{ backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 12px', cursor: 'pointer' }}
-                        >
-                          削除
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                activeCourts.map((court) => {
+                  const reserved = isCourtReserved(court.id);
+                  return (
+                    <tr key={court.id} style={{ borderBottom: '1px solid #333' }}>
+                      <td style={{ border: '1px solid #333', padding: '10px' }}>{court.id}</td>
+                      <td style={{ border: '1px solid #333', padding: '10px' }}>{court.name}</td>
+                      <td style={{ border: '1px solid #333', padding: '10px' }}>{court.type}</td>
+                      <td style={{ border: '1px solid #333', padding: '10px' }}>{court.isIndoor ? '屋内' : '屋外'}</td>
+                      <td style={{ border: '1px solid #333', padding: '10px' }}>{court.date} {court.timeSlot}</td>
+                      <td style={{ border: '1px solid #333', padding: '10px' }}>¥{court.pricePerHour?.toLocaleString()}</td>
+                      <td style={{ border: '1px solid #333', padding: '10px' }}>{court.status === 'available' ? '公開中' : '非公開'}</td>
+                      <td style={{ border: '1px solid #333', padding: '10px', textAlign: 'left' }}>{court.description}</td>
+                      <td style={{ border: '1px solid #333', padding: '10px' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                          <button
+                            onClick={() => handleEdit(court)}
+                            disabled={reserved}
+                            style={{
+                              backgroundColor: reserved ? '#ccc' : '#00a0e9',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '4px',
+                              padding: '4px 12px',
+                              cursor: reserved ? 'not-allowed' : 'pointer',
+                              opacity: reserved ? 0.6 : 1,
+                            }}
+                            title={reserved ? '予約が存在するため編集できません' : ''}
+                          >
+                            編集
+                          </button>
+                          <button
+                            onClick={() => handleDelete(court.id)}
+                            disabled={reserved}
+                            style={{
+                              backgroundColor: reserved ? '#ccc' : '#dc3545',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '4px',
+                              padding: '4px 12px',
+                              cursor: reserved ? 'not-allowed' : 'pointer',
+                              opacity: reserved ? 0.6 : 1,
+                            }}
+                            title={reserved ? '予約が存在するため削除できません' : ''}
+                          >
+                            削除
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={9} style={{ padding: '20px', color: '#666' }}>
