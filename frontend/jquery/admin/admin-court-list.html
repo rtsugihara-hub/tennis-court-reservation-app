@@ -206,7 +206,10 @@
       // 2. 指定コートのアクティブな予約チェック（cancelled 以外）
       function hasActiveReservations(courtId) {
         return reservationsData.some(function (res) {
-          return String(res.courtId) === String(courtId) && res.status !== 'cancelled';
+          const matchCourt = String(res.courtId) === String(courtId);
+          const st = (res.status || '').toLowerCase();
+          const isActive = st !== 'cancelled' && st !== 'キャンセル' && st !== 'キャンセル済';
+          return matchCourt && isActive;
         });
       }
 
@@ -235,6 +238,17 @@
           const statusText = court.status === 'available' ? '公開中' : '非公開';
           const priceText = court.pricePerHour ? `¥${court.pricePerHour.toLocaleString()}` : '¥0';
 
+          // ★ 有効予約の存在判定
+          const reserved = hasActiveReservations(court.id);
+
+          const editBtnAttr = reserved
+            ? 'disabled style="background-color: #ccc; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: not-allowed; opacity: 0.6;" title="指定されたコートには既に予約が存在するため編集できません。"'
+            : 'style="background-color: #00a0e9; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;"';
+
+          const deleteBtnAttr = reserved
+            ? 'disabled style="background-color: #ccc; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: not-allowed; opacity: 0.6;" title="指定されたコートには既に予約が存在するため削除できません。"'
+            : 'style="background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;"';
+
           const $tr = $(`
             <tr style="border-bottom: 1px solid #333;">
               <td style="border: 1px solid #333; padding: 10px;">${court.id}</td>
@@ -247,10 +261,10 @@
               <td style="border: 1px solid #333; padding: 10px; text-align: left;">${escapeHtml(court.description || '')}</td>
               <td style="border: 1px solid #333; padding: 10px;">
                 <div style="display: flex; gap: 8px; justify-content: center;">
-                  <button class="btn-edit" style="background-color: #00a0e9; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;">
+                  <button class="btn-edit" ${editBtnAttr}>
                     編集
                   </button>
-                  <button class="btn-delete" style="background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;">
+                  <button class="btn-delete" ${deleteBtnAttr}>
                     削除
                   </button>
                 </div>
@@ -258,9 +272,11 @@
             </tr>
           `);
 
-          // イベント設定
-          $tr.find('.btn-edit').on('click', function () { handleEdit(court); });
-          $tr.find('.btn-delete').on('click', function () { handleDelete(court.id); });
+          // イベント設定（活性状態のときのみバインド）
+          if (!reserved) {
+            $tr.find('.btn-edit').on('click', function () { handleEdit(court); });
+            $tr.find('.btn-delete').on('click', function () { handleDelete(court.id); });
+          }
 
           $tbody.append($tr);
         });
@@ -289,6 +305,11 @@
 
       // 5. 削除処理
       function handleDelete(id) {
+        if (hasActiveReservations(id)) {
+          alert('指定されたコートには既に予約が存在するため、コート情報を削除できません。');
+          return;
+        }
+
         if (!confirm('このコート情報を削除しますか？')) return;
 
         $.ajax({
@@ -395,4 +416,4 @@
     });
   </script>
 </body>
-</html>s
+</html>

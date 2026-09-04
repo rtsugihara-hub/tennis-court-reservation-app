@@ -159,7 +159,8 @@
         $('#loadingText').show();
         $('#dashboardContent').hide();
 
-        const reservationUrl = currentUser.role === 'admin'
+        const isUserAdmin = currentUser.role === 'admin' || currentUser.role === 'ADMIN';
+        const reservationUrl = isUserAdmin
           ? `${API_BASE_URL}/reservations`
           : `${API_BASE_URL}/reservations/user/${currentUser.id}`;
 
@@ -182,21 +183,70 @@
           });
       }
 
+      // ★ 自分の予約の中で「今日以降で最も利用日時が近い予約1件」を取得
+      function getNearestReservation(activeReservations) {
+        if (!activeReservations || activeReservations.length === 0) return [];
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const validReservations = activeReservations.map(function (r) {
+          let dateStr = r.date || '';
+          // ハイフン補正 (例: "20260906" -> "2026-09-06")
+          if (/^\d{8}$/.test(dateStr)) {
+            dateStr = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+          }
+
+          const resDate = new Date(dateStr);
+          return {
+            raw: r,
+            formattedDate: dateStr,
+            resDate: resDate,
+            diff: resDate.getTime() - today.getTime()
+          };
+        }).filter(function (item) {
+          return !isNaN(item.resDate.getTime());
+        });
+
+        if (validReservations.length === 0) return [];
+
+        // 今日以降 (diff >= 0) の予約を最優先で検索
+        const futureReservations = validReservations.filter(function (item) {
+          return item.diff >= 0;
+        });
+
+        if (futureReservations.length > 0) {
+          // 今日以降で最も日付が近い (diffが最小) 順にソート
+          futureReservations.sort(function (a, b) { return a.diff - b.diff; });
+          return [futureReservations[0].raw];
+        } else {
+          // 今日以降の予約がない場合は過去の最新日 (diffが最大の負の値) を選択
+          validReservations.sort(function (a, b) { return b.diff - a.diff; });
+          return [validReservations[0].raw];
+        }
+      }
+
       // 3. 画面全体描画関数
       function renderDashboard() {
-        // ★ 利用可能コート数（status === 'available' かつ未削除のみカウント）
-        const availableCount = courtsData.filter(c => !c.isDeleted && c.status === 'available').length;
+        // 利用可能コート数（status === 'available' かつ未削除のみカウント）
+        const availableCount = courtsData.filter(function (c) {
+          return !c.isDeleted && c.status === 'available';
+        }).length;
         $('#availableCourtsCount').text(`${availableCount} 件`);
 
         // アクティブ予約（キャンセル以外）
-        const activeReservations = reservationsData.filter(res => res.status !== 'cancelled');
+        const activeReservations = reservationsData.filter(function (res) {
+          const st = (res.status || '').toLowerCase();
+          return st !== 'cancelled' && st !== 'キャンセル' && st !== 'キャンセル済';
+        });
         $('#myReservationsCount').text(`${activeReservations.length} 件`);
 
         // カレンダー描画
         renderCalendar();
 
-        // 直近予約テーブル描画 (最新1件)
-        renderLatestReservationTable(activeReservations.slice(0, 1));
+        // ★ 今日から最も近い予約1件を取得してテーブル描画
+        const nearestList = getNearestReservation(activeReservations);
+        renderLatestReservationTable(nearestList);
       }
 
       // 4. カレンダー描画処理
@@ -230,11 +280,14 @@
         for (let dateNum = 1; dateNum <= daysInMonth; dateNum++) {
           const monthStr = String(currentMonth).padStart(2, '0');
           const dateStrFormatted = String(dateNum).padStart(2, '0');
-          const fullDateStr = `${currentYear}-${monthStr}-${dateStrFormatted}`;
+          const fullDateStr1 = `${currentYear}-${monthStr}-${dateStrFormatted}`;
+          const fullDateStr2 = `${currentYear}${monthStr}${dateStrFormatted}`;
 
-          const targetReservations = reservationsData.filter(
-            r => r.date === fullDateStr && r.status !== 'cancelled'
-          );
+          const targetReservations = reservationsData.filter(function (r) {
+            const st = (r.status || '').toLowerCase();
+            const isActive = st !== 'cancelled' && st !== 'キャンセル' && st !== 'キャンセル済';
+            return (r.date === fullDateStr1 || r.date === fullDateStr2) && isActive;
+          });
 
           let cellHtml = `
             <div style="background-color: #fff; padding: 6px; min-height: 80px; box-sizing: border-box;">
@@ -244,7 +297,8 @@
           `;
 
           targetReservations.forEach(function (res) {
-            const isConfirmed = res.status === 'confirmed';
+            const st = (res.status || '').toLowerCase();
+            const isConfirmed = st === 'confirmed' || st === '予約済';
             const bgColor = isConfirmed ? '#d4edda' : '#e2e3e5';
             const textColor = isConfirmed ? '#155724' : '#383d41';
 
@@ -292,16 +346,22 @@
         }
 
         latestList.forEach(function (res) {
-          let statusText = '';
-          if (res.status === 'confirmed') statusText = '予約済';
-          if (res.status === 'completed') statusText = '来店済';
-          if (res.status === 'cancelled') statusText = 'キャンセル';
+          const st = (res.status || '').toLowerCase();
+          let statusText = res.status || '予約済';
+          if (st === 'confirmed' || st === '予約済') statusText = '予約済';
+          if (st === 'completed' || st === '利用済' || st === '来店済') statusText = '来店済';
+          if (st === 'cancelled' || st === 'キャンセル' || st === 'キャンセル済') statusText = 'キャンセル';
+
+          let dateStr = res.date || '';
+          if (/^\d{8}$/.test(dateStr)) {
+            dateStr = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+          }
 
           $tbody.append(`
             <tr style="border-bottom: 1px solid #333;">
               <td style="border: 1px solid #333; padding: 10px;">${res.id}</td>
               <td style="border: 1px solid #333; padding: 10px;">${escapeHtml(res.courtName)}</td>
-              <td style="border: 1px solid #333; padding: 10px;">${res.date} ${res.timeSlot}</td>
+              <td style="border: 1px solid #333; padding: 10px;">${dateStr} ${res.timeSlot}</td>
               <td style="border: 1px solid #333; padding: 10px;">${statusText}</td>
             </tr>
           `);
