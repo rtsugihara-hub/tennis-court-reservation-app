@@ -165,16 +165,37 @@
               <td style="border: 1px solid #333; padding: 10px; text-align: left;">{{ court.description }}</td>
               <td style="border: 1px solid #333; padding: 10px;">
                 <div style="display: flex; gap: 8px; justify-content: center;">
-                  <!-- 編集ボタン（常にクリック可能） -->
+                  <!-- 編集ボタン（予約が存在する場合は非活性化） -->
                   <button
                     @click="handleEdit(court)"
-                    style="background-color: #00a0e9; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;"
+                    :disabled="hasActiveReservations(court.id)"
+                    :style="{
+                      backgroundColor: hasActiveReservations(court.id) ? '#ccc' : '#00a0e9',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '4px 12px',
+                      cursor: hasActiveReservations(court.id) ? 'not-allowed' : 'pointer',
+                      opacity: hasActiveReservations(court.id) ? 0.6 : 1
+                    }"
+                    :title="hasActiveReservations(court.id) ? '指定されたコートには既に予約が存在するため編集できません。' : ''"
                   >
                     編集
                   </button>
+                  <!-- 削除ボタン（予約が存在する場合は非活性化） -->
                   <button
                     @click="handleDelete(court.id)"
-                    style="background-color: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 4px 12px; cursor: pointer;"
+                    :disabled="hasActiveReservations(court.id)"
+                    :style="{
+                      backgroundColor: hasActiveReservations(court.id) ? '#ccc' : '#dc3545',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '4px 12px',
+                      cursor: hasActiveReservations(court.id) ? 'not-allowed' : 'pointer',
+                      opacity: hasActiveReservations(court.id) ? 0.6 : 1
+                    }"
+                    :title="hasActiveReservations(court.id) ? '指定されたコートには既に予約が存在するため削除できません。' : ''"
                   >
                     削除
                   </button>
@@ -244,7 +265,7 @@ onMounted(() => {
 // アクティブな予約（ステータスが cancelled 以外）の判定関数
 const hasActiveReservations = (courtId: number | string): boolean => {
   return reservations.value.some(
-    (res) => String(res.courtId) === String(courtId) && res.status !== 'cancelled'
+    (res) => String(res.courtId) === String(courtId) && res.status !== 'cancelled' && res.status !== 'キャンセル' && res.status !== 'キャンセル済'
   );
 };
 
@@ -279,6 +300,11 @@ const handleEdit = (court: Court) => {
 
 // 削除処理
 const handleDelete = async (id: number | string) => {
+  if (hasActiveReservations(id)) {
+    alert('指定されたコートには既に予約が存在するため、コート情報を削除できません。');
+    return;
+  }
+
   if (!window.confirm('このコート情報を削除しますか？')) return;
 
   try {

@@ -149,8 +149,8 @@
                 v-for="res in getReservationsForDate(dateNum)"
                 :key="res.id"
                 :style="{
-                  backgroundColor: res.status === 'confirmed' ? '#d4edda' : '#e2e3e5',
-                  color: res.status === 'confirmed' ? '#155724' : '#383d41',
+                  backgroundColor: res.status === 'confirmed' || res.status === '予約済' ? '#d4edda' : '#e2e3e5',
+                  color: res.status === 'confirmed' || res.status === '予約済' ? '#155724' : '#383d41',
                   fontSize: '11px',
                   padding: '3px 5px',
                   borderRadius: '3px',
@@ -251,7 +251,7 @@ const fetchData = async () => {
 
     // 2. 予約一覧の取得 (管理者の場合は全件、一般ユーザーはユーザー別)
     const reservationUrl =
-      props.currentUser.role === 'admin'
+      props.currentUser.role === 'admin' || props.currentUser.role === 'ADMIN'
         ? 'http://localhost:8080/api/reservations'
         : `http://localhost:8080/api/reservations/user/${props.currentUser.id}`;
 
@@ -283,11 +283,48 @@ const availableCourtsCount = computed(() => {
 });
 
 const activeReservations = computed(() => {
-  return reservations.value.filter((res) => res.status !== 'cancelled');
+  return reservations.value.filter((res) => {
+    const st = (res.status || '').toLowerCase();
+    return st !== 'cancelled' && st !== 'キャンセル' && st !== 'キャンセル済';
+  });
 });
 
+// ★ 自分の予約の中で「今日以降で最も利用日時が近い予約1件」を計算
 const latestReservation = computed(() => {
-  return activeReservations.value.slice(0, 1);
+  if (activeReservations.value.length === 0) return [];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const validReservations = activeReservations.value.map((r) => {
+    let dateStr = r.date || '';
+    // ハイフン補正 (例: "20260906" -> "2026-09-06")
+    if (/^\d{8}$/.test(dateStr)) {
+      dateStr = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+    }
+
+    const resDate = new Date(dateStr);
+    return {
+      raw: r,
+      resDate,
+      diff: resDate.getTime() - today.getTime(),
+    };
+  }).filter((item) => !isNaN(item.resDate.getTime()));
+
+  if (validReservations.length === 0) return [];
+
+  // 今日以降（diff >= 0）の予約を優先して抽出
+  const futureReservations = validReservations.filter((item) => item.diff >= 0);
+
+  if (futureReservations.length > 0) {
+    // 今日以降で最も日付が近い（diffが最小）予約を選択
+    futureReservations.sort((a, b) => a.diff - b.diff);
+    return [futureReservations[0].raw];
+  } else {
+    // 今日以降の予約がない場合は、過去の中で一番最新の予約を選択
+    validReservations.sort((a, b) => b.diff - a.diff);
+    return [validReservations[0].raw];
+  }
 });
 
 const days = computed(() => {
@@ -305,12 +342,16 @@ const days = computed(() => {
 });
 
 const getReservationsForDate = (dateNum: number) => {
-  const dateStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(
-    dateNum
-  ).padStart(2, '0')}`;
-  return reservations.value.filter(
-    (r) => r.date === dateStr && r.status !== 'cancelled'
-  );
+  const monthStr = String(currentMonth.value).padStart(2, '0');
+  const dayStr = String(dateNum).padStart(2, '0');
+  const dateStr1 = `${currentYear.value}-${monthStr}-${dayStr}`;
+  const dateStr2 = `${currentYear.value}${monthStr}${dayStr}`;
+
+  return reservations.value.filter((r) => {
+    const st = (r.status || '').toLowerCase();
+    const isNotCancelled = st !== 'cancelled' && st !== 'キャンセル' && st !== 'キャンセル済';
+    return (r.date === dateStr1 || r.date === dateStr2) && isNotCancelled;
+  });
 };
 
 const handlePrevMonth = () => {
@@ -332,9 +373,10 @@ const handleNextMonth = () => {
 };
 
 const getStatusText = (status: string) => {
-  if (status === 'confirmed') return '予約済';
-  if (status === 'completed') return '来店済';
-  if (status === 'cancelled') return 'キャンセル';
-  return '';
+  const s = (status || '').toLowerCase();
+  if (s === 'confirmed' || s === '予約済') return '予約済';
+  if (s === 'completed' || s === '利用済' || s === '来店済') return '来店済';
+  if (s === 'cancelled' || s === 'キャンセル' || s === 'キャンセル済') return 'キャンセル';
+  return status || '予約済';
 };
 </script>
