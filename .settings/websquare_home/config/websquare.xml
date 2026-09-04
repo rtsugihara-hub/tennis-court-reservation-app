@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<websquare>
+	<upload support="true">
+	
+		<baseDir value="C:/upload"></baseDir>
+		<!-- 
+			アップロードするファイルのファイル名エンコーディング
+		 -->
+		<encoding value="UTF-8" />
+		
+		<!-- 
+			アップロードサイズ　デフォルト1M
+		 -->
+		<maxUploadSize value="5000000" />
+		
+		<!-- 
+			アップロードキーの設定
+			session|random
+			default => session
+			
+			セッションの場合は、開かれたセッションごとに1つのフォルダが割り当てられます。
+		 -->
+		<uploadMode value="session" />
+		
+		<duplicatedFilePostFix value="yyyy-MM-dd(HH mm ss)"></duplicatedFilePostFix>
+		<!-- 
+			許可されるアップロードファイル
+			大文字と小文字を区別しない
+			·で区切ります
+		 -->
+		<allowedExtension>
+			gif, jpg, doc, xls, xlsx, ppt, pdf, txt
+		</allowedExtension>
+		<deniedExtension>
+		exe
+		</deniedExtension>
+	</upload>
+	<dispatcher>
+		<post>
+			<!-- 
+				1. フォームを通じてPOST方式で送信されるパラメーターのエンコーディング
+				2. デフォルト値 : ISO-8859-1
+			 -->
+			<encoding value="ISO8859-1"></encoding>
+		</post>
+	</dispatcher>
+	<excel>
+		<read>
+			<displayType value="number" />
+		</read>
+	</excel>
+	<!--
+		ライセンス情報を表示できるIPアドレス範囲の設定
+	-->
+	<licenseInfoView>
+		<allowedIP value="192.168.* *" />
+	</licenseInfoView>
+	<!--
+	1 : 既存エンジン - デフォルト値
+	2 : 既存エンジン（debugの情報を削除）
+	3 : 新規エンジン
+	4 : 新規エンジン(debugデータ削除)
+	直接指定する場合：w2xType
+
+  etag
+	サポート：etagの値を比較し、一致する場合はステータスコードを304で返す（デフォルト値）
+	サポートしない : etagの値の比較をサポートしない
+	deprecated
+		1以上の整数、ALL、NONEを入力できます。
+		ALLが入力された場合、deprecatedが設定されたすべての関数を使用できません。
+		整数が入力された場合、その整数以下のバージョンでdeprecatedされた関数は使用できません。
+		ソースにある非推奨バージョンより大きい値が入力されても、エラーは発生しません。
+		NONEが入力された場合、非推奨（deprecated）の関数を含むすべての関数を使用できます。
+		設定がない場合はNONEと同じです。
+		設定に異なる値が入力された場合はNONEと同じです。
+	coverage : function coverageを測定するための機能。engineTypeが1·3·5の場合のみ正常に動作します。デフォルト値はnotsupportです。運用環境では設定してはいけません。
+		support | notsupport (*)
+	 -->
+	<engineType value="6" etag="support" coverage="notsupport" deprecated="NONE"/>
+	<i18n>
+			<!-- 
+			多言語リソースバンドルファイルが存在するフォルダです。設定がない場合は$WEBSQUARE_HOME/localeを使用します。
+			* 日本語の場合はbaseDir/ja/以下にファイルが存在します
+			* 英語の場合、baseDir/en/ 以下にファイルが存在します
+			 -->
+			<baseDir value="C:\TNB\webdev\websquare_home\locale\"/>
+			<!--
+			基本localeを設定します。設定がない場合はenを使用します。
+			-->
+			<defaultLocale value="jp">
+				<domain name="localhost" locale="en"/>
+				<domain name="ko.shb.co.kr" locale="ko"/>
+				<domain name="en.shb.co.kr" locale="en"/>
+				<domain name="en.shb.co.kr" locale="en"/>
+			</defaultLocale>
+			<!-- 
+			変換に使用する多言語をサーバーに渡すために使用するパラメータ。設定がない場合はlocaleを使用します。
+			
+			多言語判断優先順位
+			  1.url
+			  2.cookie 
+			  3.defaultLocaleの設定（ドメイン別のdefault localeを参照した後、全体のdefault localeを参照）
+			-->
+			<localeParam value="locale"/>
+			<!-- 
+			baseDir : ウェブスクエアのXMLファイルが存在するフォルダを指定します。設定がない場合は正常に動作しません。
+			cache : true | false 変換されたファイルをキャッシュするかどうかを設定します。デフォルト値はfalseです。
+			-->
+			<xmlInfo baseDir="C:\TNB\webdev\webapps" cache="false"/>
+	</i18n>
+	<template default="html5">
+		<html4 value="template/websquare_html4.html"/>
+		<html5 value="template/websquare_html5.html"/>
+	</template>
+
+
+</websquare>

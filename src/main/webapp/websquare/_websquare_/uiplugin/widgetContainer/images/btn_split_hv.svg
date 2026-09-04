@@ -1,0 +1,23 @@
+<svg width="19" height="17" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="btnSplitHvFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0F0F0"/>
+      <stop offset="1" stop-color="#E4E4E4"/>
+    </linearGradient>
+    <filter id="btnSplitHvShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.7"/>
+      <feOffset dx="0" dy="0.4"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="1.5" y="0.5" width="16" height="15" rx="2" ry="2" fill="url(#btnSplitHvFill)" stroke="#B0B0B0" stroke-width="1" filter="url(#btnSplitHvShadow)"/>
+  <g transform="translate(3.975 2.575) scale(0.85)" stroke="#777777" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9.75 7.04167V10.2917C9.75 10.579 9.63586 10.8545 9.4327 11.0577C9.22953 11.2609 8.95398 11.375 8.66667 11.375H2.70833C2.42102 11.375 2.14547 11.2609 1.9423 11.0577C1.73914 10.8545 1.625 10.579 1.625 10.2917V4.33333C1.625 4.04602 1.73914 3.77047 1.9423 3.5673C2.14547 3.36414 2.42102 3.25 2.70833 3.25H5.95833"/>
+    <path d="M8.125 1.625H11.375V4.875"/>
+    <path d="M5.41675 7.58333L11.3751 1.625"/>
+  </g>
+</svg>

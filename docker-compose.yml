@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # 1. データベースコンテナ (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: tennis-db
+    environment:
+      MYSQL_DATABASE: tennis_db
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # パス指定を ./backend/sql から ./sql に調整（SQLファイルの配置場所に合わせて変更）
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/01_create_tables.sql
+      - ./sql/insert_data.sql:/docker-entrypoint-initdb.d/02_insert_data.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user", "-ppassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:

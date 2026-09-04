@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hashtable>
+	<data hashkey="head">
+		<properties>
+			<property name="meta_screenId" default="" description="ID" necessary="no" type="string"/>
+			<property name="meta_screenName" default="" description="画面名" necessary="no" type="string"/>
+			<property name="meta_subsystem" default="" description="業務名" necessary="no" type="string"/>
+			<property name="meta_author" default="" description="作成者" necessary="no" type="string"/>
+			<property name="meta_type" default="" description="タイプ" necessary="no" type="combobox">
+				<option name="メイン" value="メイン"/>
+				<option name="サブ" value="サブ"/>
+				<option name="ポップアップ" value="ポップアップ"/>
+			</property>
+			<property name="meta_desc" default="" description="概要" necessary="no" type="multiline"/>
+			<property name="meta_process" default="" description="機能定義" necessary="no" type="multiline"/>
+			<property name="meta_etc" default="" description="備考" necessary="no" type="multiline"/>
+		</properties>
+	</data>
+	<data hashkey="history">
+        <properties>
+            <property name="meta_no" default="" description="改訂番号" hidden="N" necessary="Y" type="string"/>
+            <property name="meta_desc" default="" description="第/修正ページと修正内容" hidden="N" necessary="Y" type="multiline"/>
+            <property name="meta_date" default="" description="制定/改定日" hidden="N" necessary="Y" type="string"/>
+            <property name="meta_user" default="" description="第/改訂者" hidden="N" necessary="Y" type="string"/>
+        </properties>
+    </data>
+	<data hashkey="submission">
+		<properties>
+			<property name="meta_name" default="" description="submission名" necessary="no" type="string"/>
+			<property name="meta_desc" default="" description="submission説明" necessary="no" type="multiline"/>
+			<property name="meta_process" default="" description="submission処理手順" necessary="no" type="multiline"/>
+			<property name="meta_rule" default="" description="submission業務ルール" necessary="no" type="multiline"/>
+			<property name="meta_etc" default="" description="備考" necessary="no" type="multiline"/>
+		</properties>
+	</data>
+	<data hashkey="workflow">
+		<properties>
+			<property name="meta_name" default="" description="submission名" necessary="no" type="string"/>
+			<property name="meta_desc" default="" description="submission説明" necessary="no" type="multiline"/>
+			<property name="meta_process" default="" description="submission処理手順" necessary="no" type="multiline"/>
+			<property name="meta_rule" default="" description="submission業務ルール" necessary="no" type="multiline"/>
+			<property name="meta_etc" default="" description="備考" necessary="no" type="multiline"/>
+		</properties>
+	</data>
+	<data hashkey="dataCollection">
+		<properties>
+			<property name="meta_name" default="" description="dataCollection名" necessary="no" type="string"/>
+			<property name="meta_desc" default="" description="dataCollectionの説明" necessary="no" type="multiline"/>
+		</properties>
+	</data>
+	<data hashkey="event">
+		<properties>
+			<property name="metaev_name" default="" description="イベント名" necessary="no" type="string"/>
+			<property name="metaev_desc" default="" description="イベント説明" necessary="no" type="multiline"/>
+			<property name="metaev_process" default="" description="event 処理手順" necessary="no" type="multiline"/>
+			<property name="metaev_rule" default="" description="event 業務ルール" necessary="no" type="multiline"/>
+			<property name="metaev_etc" default="" description="備考" necessary="no" type="multiline"/>
+		</properties>
+	</data>
+	<data hashkey="component">
+		<properties>
+			<property name="meta_name" default="" description="component名" necessary="no" type="string"/>
+			<property name="meta_desc" default="" description="component 説明" necessary="no" type="multiline"/>
+		</properties>
+	</data>
+	<data hashkey="metaConfig">
+		<metainfo use="false" kormeta="" engmeta="" typemeta="" lengthmeta="" virtualpointmeta="">
+			<rtrvmeta url="http://" mediatype="" encoding="" timeout="30" />
+			<changemeta url="http://" mediatype="" encoding="" timeout="30" />
+		</metainfo>
+	</data>
+</hashtable>

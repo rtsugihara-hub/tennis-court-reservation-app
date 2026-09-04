@@ -1,0 +1,2085 @@
+{
+  "!name": "WebSquare",
+  "WebSquare": {"uiplugin": {
+    "slider": {},
+    "textbox": {},
+    "upload": {},
+    "textarea": {
+      "oneditkeyup": {
+        "!type": "fn(info: JSON, e: +Object)",
+        "!doc": "키보드에서 키를 눌렀다 놓았을 때 발생.\n\noldValue, newValue, keyCode를 포함한 JSON 객체가 인자로 추가로 들어옴.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "키가 입력된 후의 TextArea 값"
+          },
+          "keyCode": {
+            "!type": "number",
+            "!doc": "입력된 키의 코드값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "키가 입력되기 이전의 TextArea 값"
+          }
+        }
+      },
+      "onchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "컴포넌트의 value가 변경되었을 때 발생. \n\nfocus out 시점에 발생. \n\n스크립트를 통해 값이 변경 된 경우에도 발생. \n\n이전/이후 값을 비교 할 때는 onviewchage 이벤트를 사용.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      }
+    },
+    "body": {},
+    "widgetContainer": {
+      "onwidgetmove": {
+        "newPositionInfo": {
+          "x": {
+            "!type": "number",
+            "!doc": "이동 전 위젯의 x값"
+          },
+          "unitWidth": {
+            "!type": "number",
+            "!doc": "이동 전 위젯의 unitWidth값"
+          },
+          "y": {
+            "!type": "number",
+            "!doc": "이동 전 위젯의 y값"
+          },
+          "unitHeight": {
+            "!type": "number",
+            "!doc": "이동 전 위젯의 unitHeight값"
+          }
+        },
+        "!type": "fn(id: string, newPositionInfo: +Object, oldPositionInfo: +Object)",
+        "oldPositionInfo": {
+          "x": {
+            "!type": "number",
+            "!doc": "이동 전 위젯의 x값"
+          },
+          "unitWidth": {
+            "!type": "number",
+            "!doc": "이동 전 위젯의 unitWidth값"
+          },
+          "y": {
+            "!type": "number",
+            "!doc": "이동 전 위젯의 y값"
+          },
+          "unitHeight": {
+            "!type": "number",
+            "!doc": "이동 전 위젯의 unitHeight값"
+          }
+        },
+        "!doc": "API 혹은 사용자 입력을 통한 위젯 이동시 발생."
+      },
+      "onwidgetresize": {
+        "!type": "fn(id: string, newPositionInfo: +Object, oldRect: +Object)",
+        "newPositionInfo": {
+          "x": {
+            "!type": "number",
+            "!doc": "리사이징 후 위젯의 x값"
+          },
+          "unitWidth": {
+            "!type": "number",
+            "!doc": "리사이징 후 위젯의 unitWidth값"
+          },
+          "y": {
+            "!type": "number",
+            "!doc": "리사이징 후 위젯의 y값"
+          },
+          "unitHeight": {
+            "!type": "number",
+            "!doc": "리사이징 후 위젯의 unitHeight값"
+          }
+        },
+        "!doc": "API 혹은 사용자 입력을 통한 위젯 리사이징시 발생."
+      }
+    },
+    "radio": {
+      "onchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "사용자가 항목을 선택/변경하거나 API를 이용하여 value를 설정할 경우 발생. \n\n사용자의 항목 선택만 제어할 때는 onviewchange 이벤트를 사용.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "index": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 아이템(항목)의 index"
+          },
+          "oldIndex": {
+            "!type": "number",
+            "!doc": "이전에 선택된 아이템(항목)의 index"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전에 선택된 아이템(항목)의 value"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "이벤트가 일어난 아이템(항목)의 value"
+          }
+        }
+      }
+    },
+    "output": {},
+    "checkcombobox": {
+      "onchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "사용자가 항목을 선택/변경하거나 API를 이용하여 value를 설정할 경우 발생. \n\n사용자의 항목 선택만 제어할 때는 onviewchange 이벤트를 사용.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "newInfo": {
+            "!type": "array",
+            "!doc": "변경 된 후의 상태를 기준으로 전체 항목들의 각각을 JSON으로 변환하여 저장한 배열"
+          },
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          },
+          "oldInfo": {
+            "!type": "array",
+            "!doc": "이전에 상태를 기준으로 전체 항목들의 각각을 JSON으로 변환하여 저장한 배열"
+          }
+        }
+      }
+    },
+    "windowContainer": {
+      "onrestorebtnclick": {
+        "!type": "fn(info: +Object)",
+        "!doc": "각 윈도우의 창사이즈 복원 버튼을 클릭할 때 발생.",
+        "info": {
+          "windowTitle": {
+            "!type": "string",
+            "!doc": "윈도우의 windowTitle 속성 값"
+          },
+          "id": {
+            "!type": "string",
+            "!doc": "닫기 버튼을 통해 비활성화된 윈도우의 title 속성 값"
+          },
+          "title": {
+            "!type": "string",
+            "!doc": "윈도우의 title 속성 값"
+          },
+          "src": {
+            "!type": "string",
+            "!doc": "윈도우의 src 속성 값"
+          },
+          "windowId": {
+            "!type": "string",
+            "!doc": "닫기 버튼을 통해 비활성화된 윈도우의 title 속성 값"
+          }
+        }
+      },
+      "onafternamelayermove": {
+        "!type": "fn(info: +Object)",
+        "!doc": "마우스 드래그-앤-드롭 후 윈도우의 위치가 변경된 직후에 발생. \n\n관련 속성: nameLayerMove=true일 때 유효.",
+        "info": {
+          "startIndex": {
+            "!type": "number",
+            "!doc": "nameLayer이동을 시작한 nameLayer의 index (화면기준)"
+          },
+          "startWindowID": {
+            "!type": "string",
+            "!doc": "nameLayer이동을 시작한 nameLayer의 id"
+          },
+          "endWindowID": {
+            "!type": "number",
+            "!doc": "nameLayer이동이 끝나는 지점에 있는 nameLayer(nameLayer이동 처리 후, nameLayer이동을 시작한 nameLayer의 왼쪽에 위치할 nameLayer)의 id"
+          },
+          "endIndex": {
+            "!type": "number",
+            "!doc": "nameLayer이동이 끝나는 지점에 있는 nameLayer(nameLayer이동 처리 후, nameLayer이동을 시작한 nameLayer의 왼쪽에 위치할 nameLayer)의 index"
+          }
+        }
+      },
+      "onbeforenamelayermove": {
+        "!type": "fn(info: +Object)",
+        "!doc": "마우스 드래그-앤-드롭 후 윈도우의 위치가 변경되기 직전에 발생. 이벤트 핸들러 함수에서 false를 반환하면 위치 변경이 취소됨. \n\n관련 속성: nameLayerMove=true일 때 유효.",
+        "info": {
+          "startIndex": {
+            "!type": "number",
+            "!doc": "nameLayer이동을 시작한 nameLayer의 index (화면기준)"
+          },
+          "startWindowID": {
+            "!type": "string",
+            "!doc": "nameLayer이동을 시작한 nameLayer의 id"
+          },
+          "endWindowID": {
+            "!type": "number",
+            "!doc": "nameLayer이동이 끝나는 지점에 있는 nameLayer(nameLayer이동 처리 후, nameLayer이동을 시작한 nameLayer의 왼쪽에 위치할 nameLayer)의 id"
+          },
+          "endIndex": {
+            "!type": "number",
+            "!doc": "nameLayer이동이 끝나는 지점에 있는 nameLayer(nameLayer이동 처리 후, nameLayer이동을 시작한 nameLayer의 왼쪽에 위치할 nameLayer)의 index"
+          }
+        }
+      },
+      "onwindowsplit": {
+        "!type": "fn(info: +Object, mouseX: number, mouseY: number)",
+        "!doc": "창을 분리할 때 사용하는 이벤트. window tab(nameLayer)을 드래그-앤-드롭으로 끌어다 놓을 때 발생한다.\n\n관련 속성: useWindowSplit=true일 때 유효.\n\n창을 분리하는 로직은 사용자가 직접 구현해야 한다.\n\n이벤트 핸들러 함수에서 true 리턴 시 해당 윈도우 창을 닫는다.",
+        "info": {
+          "src": {
+            "!type": "string",
+            "!doc": "윈도우의 src 속성 값"
+          },
+          "windowTitle": {
+            "!type": "string",
+            "!doc": "윈도우의 windowTitle 속성 값"
+          },
+          "id": {
+            "!type": "string",
+            "!doc": "윈도우의 id 속성 값"
+          },
+          "title": {
+            "!type": "string",
+            "!doc": "윈도우의 title 속성 값"
+          },
+          "screenX": {
+            "!type": "string",
+            "!doc": "마우스 드롭이 발생한 수평 좌표 (모니터 기준)"
+          },
+          "windowId": {
+            "!type": "string",
+            "!doc": "윈도우의 windowId 속성 값"
+          },
+          "screenY": {
+            "!type": "string",
+            "!doc": "마우스 드롭이 발생한 수직 좌표 (모니터 기준)"
+          }
+        }
+      },
+      "onminimizebtnclick": {
+        "!type": "fn(info: +Object)",
+        "!doc": "각 윈도우의 창사이즈 최소화 버튼을 클릭할 때 발생.",
+        "info": {
+          "windowTitle": {
+            "!type": "string",
+            "!doc": "윈도우의 windowTitle 속성 값"
+          },
+          "id": {
+            "!type": "string",
+            "!doc": "닫기 버튼을 통해 비활성화된 윈도우의 title 속성 값"
+          },
+          "title": {
+            "!type": "string",
+            "!doc": "윈도우의 title 속성 값"
+          },
+          "src": {
+            "!type": "string",
+            "!doc": "윈도우의 src 속성 값"
+          },
+          "windowId": {
+            "!type": "string",
+            "!doc": "닫기 버튼을 통해 비활성화된 윈도우의 title 속성 값"
+          }
+        }
+      }
+    },
+    "pivot": {
+      "oncellclick": {
+        "!type": "fn(info: +Object)",
+        "!doc": "셀이 클릭 된 경우 발생한다.",
+        "info": {
+          "colIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 column index"
+          },
+          "rowData": {
+            "!type": "string",
+            "!doc": "이벤트가 일어난 셀의 row index에 해당하는 cell data 배열"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 row index"
+          }
+        }
+      },
+      "onheaderclick": {
+        "!type": "fn(info: +Object)",
+        "!doc": "테이블 헤더가 클릭 된 경우 발생한다.",
+        "info": {
+          "colID": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 dataList 컬럼 ID"
+          },
+          "cellData": {
+            "!type": "string",
+            "!doc": "이벤트가 일어난 셀의 cell data"
+          }
+        }
+      }
+    },
+    "group": {},
+    "spinner": {
+      "oneditkeyup": {
+        "!type": "fn(info: JSON, e: +Object)",
+        "!doc": "키보드에서 키를 눌렀다 놓았을 때 발생.\n\noldValue, newValue, keyCode를 포함한 JSON 객체가 인자로 추가로 들어옴.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "키가 입력된 후의 spinner 값"
+          },
+          "keyCode": {
+            "!type": "number",
+            "!doc": "입력된 키의 코드값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "키가 입력되기 이전의 spinner 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "Spinner의 버튼 클릭 후, 값이 변경될 때 발생. \n\n변경 전/후의 값을 onviewchange 이벤트를 통해서 확인 가능.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      }
+    },
+    "image": {},
+    "accordion": {},
+    "datePicker": {"onviewchange": {
+      "!type": "fn(info: +Object)",
+      "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+      "info": {
+        "newValue": {
+          "!type": "string",
+          "!doc": "변경된 value"
+        },
+        "newSelectedIndex": {
+          "!type": "number",
+          "!doc": "변경된 index"
+        },
+        "oldSelectedIndex": {
+          "!type": "number",
+          "!doc": "이전 index"
+        },
+        "oldValue": {
+          "!type": "string",
+          "!doc": "이전 value"
+        }
+      }
+    }},
+    "multiselect": {
+      "onrowclick": {
+        "!type": "fn(info: +Object)",
+        "!doc": "아이템 클릭시 이벤트 발생.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "현재 value"
+          },
+          "newSelectedIndex": {
+            "!type": "number",
+            "!doc": "현재 index"
+          },
+          "oldSelectedIndex": {
+            "!type": "number",
+            "!doc": "이전 index"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 value"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: +Object)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 value"
+          },
+          "newSelectedIndex": {
+            "!type": "number",
+            "!doc": "변경된 index"
+          },
+          "oldSelectedIndex": {
+            "!type": "number",
+            "!doc": "이전 index"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 value"
+          }
+        }
+      }
+    },
+    "multiupload": {
+      "onerror": {
+        "data": {
+          "type": {
+            "!type": "string",
+            "!doc": "에러타입. ( fileExist, uploadCountExceed, fileSizeExceed )"
+          },
+          "message": {
+            "!type": "string",
+            "!doc": "에러 메세지."
+          }
+        },
+        "!type": "fn(data: +Object)",
+        "!doc": "클라이언트에서 파일 업로드 실패 시 발생. (에러 종류: 파일 갯수 초과, 단일 첨부 사이즈 초과, 이미 존재하는 파일)\n\n서버측 에러는 ondone 이벤트를 통해 파악 가능."
+      },
+      "onprogress": {
+        "data": {
+          "percentData": {
+            "!type": "number",
+            "!doc": "진행률"
+          },
+          "fileName": {
+            "!type": "string",
+            "!doc": "업로드파일명"
+          }
+        },
+        "!type": "fn(data: +Object)",
+        "!doc": "mode=html5_transparent 사용시 업로드 진행상태를 확인 할 수 있도록 onprogress 발생"
+      }
+    },
+    "input": {
+      "oneditkeyup": {
+        "!type": "fn(info: JSON, e: +Object)",
+        "!doc": "키보드에서 키를 눌렀다 놓았을 때 발생한다. oldValue, newValue, keyCode를 포함한 JSON객체가 인자로 추가로 넘어온다.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "키가 입력된 후의 input값"
+          },
+          "keyCode": {
+            "!type": "number",
+            "!doc": "입력된 키의 코드값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "키가 입력되기 이전의 input값"
+          }
+        }
+      },
+      "onchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "컴포넌트의 value가 변경되었을 때 발생하는 이벤트로 focus out 시점에 발생한다.\n\n스크립트를 통해 값이 변경 된 경우에도 발생한다.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      },
+      "oninputinvalid": {
+        "!type": "fn(info: JSON)",
+        "!doc": "validation에 실패했을 때 발생하는 이벤트",
+        "info": {
+          "callerId": {
+            "!type": "string",
+            "!doc": "validation 대상이 되는 input 컴포넌트의 id"
+          },
+          "detail": {
+            "!type": "string",
+            "!doc": "validation 실패정보"
+          },
+          "type": {
+            "!type": "string",
+            "!doc": "validator 이름 ( maxlength, float, maxbytesize 등.. )"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "validation에 실패한 value 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      }
+    },
+    "wframe": {"onresize": {
+      "resizeInfo": {
+        "oldHeight": {
+          "!type": "number",
+          "!doc": "resize 발생 전 height 값"
+        },
+        "newWidth": {
+          "!type": "number",
+          "!doc": "resize 발생 후 width 값"
+        },
+        "oldWidth": {
+          "!type": "number",
+          "!doc": "resize 발생 전 width 값"
+        },
+        "newHeight": {
+          "!type": "number",
+          "!doc": "resize 발생 후 height 값"
+        }
+      },
+      "!type": "fn(resizeInfo: +Object)",
+      "!doc": "resizeEvent=true일 때만 발생하며, wframe의 크기가 변경되면 이벤트가 발생한다.\n\nwframe에도 onresize 이벤트가 발생하고 자식 페이지의 body 컴포넌트에도 onresize 이벤트가 발생한다.\n\n연속으로 resize가 발생하면 70ms 간격으로 이벤트가 발생한다. 70ms 이내에 연속으로 발생한 resize는 무시된다.\n\n(관련 속성)\n```javascript\nresizeEvent\n```\n\n"
+    }},
+    "scheduleCalendar": {
+      "onbeforeaddschedule": {
+        "!type": "fn(dateInfo: JSON)",
+        "dateInfo": {
+          "endDate": {
+            "!type": "object",
+            "!doc": "이벤트가 발생한 일정의 종료일"
+          },
+          "startDate": {
+            "!type": "object",
+            "!doc": "이벤트가 발생한 일정의 시작일"
+          }
+        },
+        "!doc": "마우스 클릭 또는 드래그-앤-드랍을 이용하여 스케줄을 등록하기 전에 발생.\n\n기본적으로 제공하던 title prompt 대신 스케쥴의 정보를 (색상이나 title등) 입력할 수 있는 팝업등을 직접 생성할 수 있다. \n\n기본적으로 제공되는 prompt를 사용하지 않으려면 이벤트 핸들러의 return 값에 false를 줘야 한다."
+      },
+      "onheaderbtnclick": {
+        "!type": "fn(buttonInfo: JSON)",
+        "buttonInfo": {
+          "date": {
+            "!type": "object",
+            "!doc": "날짜(년월일) 정보. buttonType next, prev, today인 경우 yyyyMMdd 형태로 반환."
+          },
+          "viewType": {
+            "!type": "object",
+            "!doc": "view type 정보 [month, basicWeek, basicDay, agendaWeek, agendaDay]."
+          },
+          "buttonType": {
+            "!type": "number",
+            "!doc": "버튼 종류 정보 [next, prev, today, month, basicWeek, basicDay, agendaWeek, agendaDay]."
+          }
+        },
+        "!doc": "상단 이전, 다음, 오늘, 년, 월, 일 버튼을 클릭할 때 발생."
+      },
+      "onmoveschedule": {
+        "!type": "fn(scheduleInfo: JSON)",
+        "scheduleInfo": {
+          "newObj": {
+            "!type": "object",
+            "!doc": "이동 후의 스케줄 정보."
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "바인드된 dataList에서 현재 스케줄이 들어있는 행 번호."
+          },
+          "oldObj": {
+            "!type": "object",
+            "!doc": "이동 전의 스케줄 정보."
+          }
+        },
+        "!doc": "마우스 드래그-앤-드랍을 이용하여 스케줄을 이동하거나 리사이징할 때 발생.\n\n이동 전후의 스케줄 정보를 JSON 형식으로 반환."
+      },
+      "onaddschedule": {
+        "!type": "fn(scheduleInfo: JSON)",
+        "scheduleInfo": {
+          "newObj": {
+            "!type": "object",
+            "!doc": "바인드된 dataList에 추가된 스케줄 정보."
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "바인드된 dataList에서 현재 스케줄이 들어있는 행 번호."
+          }
+        },
+        "!doc": "addSchedule() 혹은 selectable 속성을 이용하여 스케줄을 추가할 때 발생.\n\n추가된 스케줄 정보를 JSON 형식으로 반환."
+      },
+      "onclick": {
+        "!type": "fn(dateInfo: JSON)",
+        "dateInfo": {
+          "start": {
+            "!type": "object",
+            "!doc": "이벤트가 발생한 일정의 시작일. 형식은 date 객체."
+          },
+          "end": {
+            "!type": "object",
+            "!doc": "이벤트가 발생한 일정의 종료일. 하나만 선택된 경우에는 선택된 다음 날짜가 지정됨."
+          }
+        },
+        "!doc": "마우스로 날짜를 클릭했을 때 발생.\n\n클릭 시 포커스된 날짜 값이 반환됨."
+      }
+    },
+    "inputCalendar": {
+      "onyearselect": {
+        "!type": "fn(info: JSON)",
+        "!doc": "달력화면에서 연도 변경시 발생. 이전 연도와 새로 선택된 연도를 파라미터로 전달 받음.(pickerType=dynamic calendarValueType=yearMonth 경우발생)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "새로 선택된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "연도 변경 전의 값"
+          }
+        }
+      },
+      "onmonthselect": {
+        "!type": "fn(info: JSON)",
+        "!doc": "달력화면에서 월 변경시 발생. 이전 월과 새로 선택된 월을 파라미터로 전달 받음.(pickerType=dynamic calendarValueType=yearMonth 경우발생)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "새로 선택된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "월 변경 전의 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      }
+    },
+    "secret": {"onviewchange": {
+      "!type": "fn(info: JSON)",
+      "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\r\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+      "info": {
+        "newValue": {
+          "!type": "string",
+          "!doc": "변경된 값"
+        },
+        "oldValue": {
+          "!type": "string",
+          "!doc": "이전 값"
+        }
+      }
+    }},
+    "switch": {},
+    "button": {},
+    "tabControl": {
+      "onaftertabmove": {
+        "!type": "fn(info: +Object)",
+        "!doc": "tab이동이 발생한 직후 발생한다.",
+        "info": {
+          "startTabID": {
+            "!type": "string",
+            "!doc": "tab이동을 시작한 tab의 id"
+          },
+          "endTabID": {
+            "!type": "number",
+            "!doc": "tab이동이 끝나는 지점에 있는 tab (tab이동 처리 후, tab이동을 시작한 tab의 왼쪽에 위치할 tab) 의 id"
+          },
+          "startTabIndex": {
+            "!type": "number",
+            "!doc": "tab이동을 시작한 tab의 index (화면기준)"
+          },
+          "endTabIndex": {
+            "!type": "number",
+            "!doc": "tab이동이 끝나는 지점에 있는 tab (tab이동 처리 후, tab이동을 시작한 tab의 왼쪽에 위치할 tab) 의 index"
+          }
+        }
+      },
+      "onbeforetabmove": {
+        "!type": "fn(info: +Object)",
+        "!doc": "tab이동이 발생하기 직전에 발생한다.",
+        "info": {
+          "startTabID": {
+            "!type": "string",
+            "!doc": "tab이동을 시작한 tab의 id"
+          },
+          "endTabID": {
+            "!type": "number",
+            "!doc": "tab이동이 끝나는 지점에 있는 tab (tab이동 처리 후, tab이동을 시작한 tab의 왼쪽에 위치할 tab) 의 id"
+          },
+          "startTabIndex": {
+            "!type": "number",
+            "!doc": "tab이동을 시작한 tab의 index (화면기준)"
+          },
+          "endTabIndex": {
+            "!type": "number",
+            "!doc": "tab이동이 끝나는 지점에 있는 tab (tab이동 처리 후, tab이동을 시작한 tab의 왼쪽에 위치할 tab) 의 index"
+          }
+        }
+      }
+    },
+    "pageFrame": {},
+    "dataMap": {
+      "onbeforemodelchange": {
+        "!type": "fn(info: +Object)",
+        "!doc": "특정 키(Key)에 대한 값 (Value)이 변경되기 직전에 발생하고 이벤트 핸들러 함수에서 false를 리턴할 경우 변경 동작이 취소됨",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "변경 전의 값"
+          }
+        }
+      },
+      "onkeyset": {
+        "!type": "fn(info: JSON)",
+        "!doc": "set API를 호출하는 경우 매번 발생하는 이벤트\n```javascript\n(관련 함수)\n set(KeyID , KeyValue);\n setEmptyValue();\n```\n\n",
+        "info": {
+          "newValue": {
+            "!type": "number",
+            "!doc": "변한 후 값"
+          },
+          "key": {
+            "!type": "number",
+            "!doc": "데이터가 변한 키(Key)"
+          },
+          "oldValue": {
+            "!type": "number",
+            "!doc": "변하기 전 값"
+          }
+        }
+      },
+      "onmodelchange": {
+        "!type": "fn(info: +Object)",
+        "!doc": "특정 키(Key)에 대한 값(Value)이 변경된 이후에 발생",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "변경 전의 값"
+          }
+        }
+      }
+    },
+    "repeat": {},
+    "checkbox": {
+      "onchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "사용자가 항목을 선택/변경하거나 API를 이용하여 value를 설정할 경우 발생. \n\n사용자의 항목 선택만 제어할 때는 onviewchange 이벤트를 사용.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "index": {
+            "!type": "number",
+            "!doc": "이벤트가 발생한 아이템(항목)의 index"
+          },
+          "checked": {
+            "!type": "boolean",
+            "!doc": "이벤트가 발생한 아이템(항목)의 checked 상태"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "이벤트가 발생한 아이템(항목)의 value"
+          }
+        }
+      }
+    },
+    "iframe": {},
+    "mapchart": {
+      "onbeforemapchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "지도가 변경되기 직전에 발생하는 이벤트. 이벤트 핸들러 함수에서 false를 리턴하여 지도 변경 동작을 취소할 수 있다.",
+        "info": {
+          "oldMapCode": {
+            "!type": "string",
+            "!doc": "변경되기 직전의 지도의 코드값 (현재 화면에 그려진 지도)"
+          },
+          "newMapCode": {
+            "!type": "string",
+            "!doc": "변경하고자 할 지도의 코드값"
+          }
+        }
+      },
+      "onmapclick": {
+        "!type": "fn(properties: JSON)",
+        "properties": {
+          "name": {
+            "!type": "string",
+            "!doc": "지역 이름 (한글)"
+          },
+          "base_year": {
+            "!type": "string",
+            "!doc": "지도 데이터 날짜"
+          },
+          "code": {
+            "!type": "string",
+            "!doc": "지역 코드 값"
+          }
+        },
+        "!doc": "지도의 특정 영역이 click된 경우에 발생하는 이벤트"
+      },
+      "onmapmousemove": {
+        "!type": "fn(properties: JSON)",
+        "properties": {
+          "name": {
+            "!type": "string",
+            "!doc": "지역 이름 (한글)"
+          },
+          "base_year": {
+            "!type": "string",
+            "!doc": "지도 데이터 날짜"
+          },
+          "code": {
+            "!type": "string",
+            "!doc": "지역 코드 값"
+          }
+        },
+        "!doc": "지도의 특정 영역이 mousemove된 경우에 발생하는 이벤트"
+      },
+      "onmapdblclick": {
+        "!type": "fn(properties: JSON)",
+        "properties": {
+          "name": {
+            "!type": "string",
+            "!doc": "지역 이름 (한글)"
+          },
+          "base_year": {
+            "!type": "string",
+            "!doc": "지도 데이터 날짜"
+          },
+          "code": {
+            "!type": "string",
+            "!doc": "지역 코드 값"
+          }
+        },
+        "!doc": "지도의 특정 영역이 dblclick된 경우에 발생하는 이벤트"
+      },
+      "onmapmouseout": {
+        "!type": "fn(properties: JSON)",
+        "properties": {
+          "name": {
+            "!type": "string",
+            "!doc": "지역 이름 (한글)"
+          },
+          "base_year": {
+            "!type": "string",
+            "!doc": "지도 데이터 날짜"
+          },
+          "code": {
+            "!type": "string",
+            "!doc": "지역 코드 값"
+          }
+        },
+        "!doc": "지도의 특정 영역이 mouseout된 경우에 발생하는 이벤트"
+      },
+      "onmapmouseover": {
+        "!type": "fn(properties: JSON)",
+        "properties": {
+          "name": {
+            "!type": "string",
+            "!doc": "지역 이름 (한글)"
+          },
+          "base_year": {
+            "!type": "string",
+            "!doc": "지도 데이터 날짜"
+          },
+          "code": {
+            "!type": "string",
+            "!doc": "지역 코드 값"
+          }
+        },
+        "!doc": "지도의 특정 영역이 mouseover된 경우에 발생하는 이벤트"
+      }
+    },
+    "searchbox": {"onviewchange": {
+      "!type": "fn(info: JSON)",
+      "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+      "info": {
+        "newValue": {
+          "!type": "string",
+          "!doc": "변경된 값"
+        },
+        "oldValue": {
+          "!type": "string",
+          "!doc": "이전 값"
+        }
+      }
+    }},
+    "autoComplete": {
+      "oneditkeyup": {
+        "!type": "fn(info: JSON, e: +Object)",
+        "!doc": "키보드에서 키를 눌렀다 놓았을 때 발생.\n\noldValue, newValue, keyCode를 포함한 JSON 객체가 인자로 추가로 들어옴.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "키가 입력된 후의 autoComplete 값"
+          },
+          "keyCode": {
+            "!type": "number",
+            "!doc": "입력된 키의 코드값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "키가 입력되기 이전의 autoComplete 값"
+          }
+        }
+      },
+      "onchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "사용자가 선택 항목을 변경할 경우 발생.",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: +Object)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "현재 선택된 값"
+          },
+          "newSelectedIndex": {
+            "!type": "number",
+            "!doc": "현재 인덱스"
+          },
+          "oldSelectedIndex": {
+            "!type": "number",
+            "!doc": "이전 인덱스"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      }
+    },
+    "calendar": {
+      "onyearselect": {
+        "!type": "fn(info: JSON)",
+        "!doc": "달력화면에서 연도 변경시 발생. 이전 연도와 새로 선택된 연도를 파라미터로 전달 받음.(pickerType=dynamic calendarValueType=year 경우발생)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "새로 선택된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "연도 변경 전의 값"
+          }
+        }
+      },
+      "onmonthselect": {
+        "!type": "fn(info: JSON)",
+        "!doc": "달력화면에서 월 변경시 발생. 이전 월과 새로 선택된 월을 파라미터로 전달 받음.(pickerType=dynamic calendarValueType=yearMonth 경우발생)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "새로 선택된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "월 변경 전의 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      }
+    },
+    "editor": {},
+    "Submission": {
+      "submit": {
+        "!type": "fn(e: +Object)",
+        "e": {"id": {
+          "!type": "string:n",
+          "!doc": "Submission 객체의 ID 반환"
+        }},
+        "!doc": "Submission 요청 전 선처리. return false시 submission 수행 안함."
+      },
+      "submiterror": {
+        "!type": "fn(e: +Object)",
+        "e": {
+          "responseStatusCode": {
+            "!type": "string:n",
+            "!doc": "Response Status Code 반환"
+          },
+          "responseHeaders": {
+            "!type": "string:n",
+            "!doc": "Response Headers 내용 반환"
+          },
+          "responseBody": {
+            "!type": "string:n",
+            "!doc": "Response Data를 XML 데이터로 parse 한 XML 객체 반환(Response Content-Type이 JSON 인 경우 json객체를 XML로 parse)"
+          },
+          "errorType": {
+            "!type": "string:n",
+            "!doc": "target-error 로 고정값 반환"
+          },
+          "responseText": {
+            "!type": "string:n",
+            "!doc": "Response Data 원본으로 String 형태 반환"
+          },
+          "responseJSON": {
+            "!type": "string:n",
+            "!doc": "Response Data 원본으로 JSON 형태 반환"
+          },
+          "id": {
+            "!type": "string:n",
+            "!doc": "Submission 객체의 ID 반환"
+          },
+          "resourceUri": {
+            "!type": "string:n",
+            "!doc": "통신 URI 반환"
+          },
+          "responseReasonPhrase": {
+            "!type": "string:n",
+            "!doc": "Response Status Text 반환"
+          }
+        },
+        "!doc": "Response Status 코드가 오류 (200 미만 300 이상) 일 경우 동작."
+      },
+      "submitdone": {
+        "!type": "fn(e: +Object)",
+        "e": {
+          "responseStatusCode": {
+            "!type": "string:n",
+            "!doc": "Response Status Code 반환"
+          },
+          "responseHeaders": {
+            "!type": "string:n",
+            "!doc": "Response Headers 내용 반환"
+          },
+          "responseBody": {
+            "!type": "string:n",
+            "!doc": "Response Data를 XML 데이터로 parse 한 XML 객체 반환(Response Content-Type이 JSON 인 경우 json객체를 XML로 parse)"
+          },
+          "responseText": {
+            "!type": "string:n",
+            "!doc": "Response Data 원본으로 String 형태 반환"
+          },
+          "responseJSON": {
+            "!type": "string:n",
+            "!doc": "Response Data 원본으로 JSON 형태 반환"
+          },
+          "id": {
+            "!type": "string:n",
+            "!doc": "Submission 객체의 ID 반환"
+          },
+          "resourceUri": {
+            "!type": "string:n",
+            "!doc": "통신 URI 반환"
+          },
+          "responseReasonPhrase": {
+            "!type": "string:n",
+            "!doc": "Response Status Text 반환"
+          }
+        },
+        "!doc": "Response Status 코드 값이 정상 일 경우 동작."
+      }
+    },
+    "floatingLayer": {},
+    "scrollView": {},
+    "pageInherit": {},
+    "trigger": {},
+    "treeview": {
+      "oncheckboxclick": {
+        "!type": "fn(value: string, node: +Object, index: string)",
+        "node": {
+          "depth": {
+            "!type": "number",
+            "!doc": "노드의 depth"
+          },
+          "checked": {
+            "!type": "boolean",
+            "!doc": "checkbox의 check여부"
+          },
+          "index": {
+            "!type": "number",
+            "!doc": "전체 노드를 기준으로 한 index"
+          },
+          "label": {
+            "!type": "string",
+            "!doc": "노드의 label"
+          },
+          "parentNode": {
+            "!type": "object",
+            "!doc": "부모 노드 객체"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "노드의 value"
+          },
+          "dpethIndex": {
+            "!type": "number",
+            "!doc": "부모 노드를 기준으로 한 index"
+          }
+        },
+        "!doc": "Checkbox가 클릭된 경우 발생"
+      },
+      "onlabelover": {
+        "!type": "fn(index: string, node: +Object, value: string)",
+        "node": {
+          "depth": {
+            "!type": "number",
+            "!doc": "노드의 depth"
+          },
+          "checked": {
+            "!type": "boolean",
+            "!doc": "checkbox의 check여부"
+          },
+          "index": {
+            "!type": "number",
+            "!doc": "전체 노드를 기준으로 한 index"
+          },
+          "label": {
+            "!type": "string",
+            "!doc": "노드의 label"
+          },
+          "parentNode": {
+            "!type": "object",
+            "!doc": "부모 노드 객체"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "노드의 value"
+          },
+          "dpethIndex": {
+            "!type": "number",
+            "!doc": "부모 노드를 기준으로 한 index"
+          }
+        },
+        "!doc": "treeview label에 마우스를 올렸을때 발생하는 이벤트"
+      },
+      "onrightbuttonclick": {
+        "!type": "fn(node: +Object, positionX: number, topPosition: number)",
+        "node": {
+          "depth": {
+            "!type": "number",
+            "!doc": "노드의 depth"
+          },
+          "checked": {
+            "!type": "boolean",
+            "!doc": "checkbox의 check여부"
+          },
+          "index": {
+            "!type": "number",
+            "!doc": "전체 노드를 기준으로 한 index"
+          },
+          "label": {
+            "!type": "string",
+            "!doc": "노드의 label"
+          },
+          "parentNode": {
+            "!type": "object",
+            "!doc": "부모 노드 객체"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "노드의 value"
+          },
+          "dpethIndex": {
+            "!type": "number",
+            "!doc": "부모 노드를 기준으로 한 index"
+          }
+        },
+        "!doc": "노드의 영역에서 마우스 오른쪽 버튼이 클릭된 경우 발생한다. 노드의 영역 범위는 label, 이미지(아이콘), 체크박스까지이다."
+      },
+      "oneditend": {
+        "!type": "fn(info: +Object)",
+        "!doc": "setEditMode API를 통해 레이블 편집모드를 활성화시킨 상태에서 편집모드가 종료된 직후에 발생하는 이벤트",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "편집 후의 label값"
+          },
+          "index": {
+            "!type": "number",
+            "!doc": "편집 대상이 되는 node의 index"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "편집 전의 label값"
+          }
+        }
+      },
+      "ondrop": {
+        "dragNode": {
+          "depth": {
+            "!type": "string",
+            "!doc": "drop된 노드의 depth"
+          },
+          "label": {
+            "!type": "string",
+            "!doc": "drop된 노드의 label"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "drop된 노드의 value"
+          },
+          "element": {
+            "!type": "object",
+            "!doc": "drop된 노드의 element객체"
+          }
+        },
+        "dropNode": {
+          "depth": {
+            "!type": "string",
+            "!doc": "drop된 노드의 depth"
+          },
+          "label": {
+            "!type": "string",
+            "!doc": "drop된 노드의 label"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "drop된 노드의 value"
+          },
+          "element": {
+            "!type": "object",
+            "!doc": "drop된 노드의 element객체"
+          }
+        },
+        "!type": "fn(dragNode: +Object, dropNode: +Object, dragComponent: +Object, dropComponent: +Object, e: +Object)",
+        "!doc": "useDrag속성이 true이고 다른 treeview의 노드가 drag되어 본 treeview의 노드 위에서 drop 되었을 때 발생한다."
+      },
+      "ontoggleclick": {
+        "!type": "fn(node: +Object, index: string, rendered: bool)",
+        "node": {
+          "depth": {
+            "!type": "number",
+            "!doc": "노드의 depth"
+          },
+          "checked": {
+            "!type": "boolean",
+            "!doc": "checkbox의 check여부"
+          },
+          "index": {
+            "!type": "number",
+            "!doc": "전체 노드를 기준으로 한 index"
+          },
+          "label": {
+            "!type": "string",
+            "!doc": "노드의 label"
+          },
+          "parentNode": {
+            "!type": "object",
+            "!doc": "부모 노드 객체"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "노드의 value"
+          },
+          "dpethIndex": {
+            "!type": "number",
+            "!doc": "부모 노드를 기준으로 한 index"
+          }
+        },
+        "!doc": "toggle 이미지(아이콘)이 클릭된 경우 발생한다."
+      },
+      "onlabelclick": {
+        "!type": "fn(value: string, node: +Object, index: string)",
+        "node": {
+          "depth": {
+            "!type": "number",
+            "!doc": "노드의 depth"
+          },
+          "checked": {
+            "!type": "boolean",
+            "!doc": "checkbox의 check여부"
+          },
+          "index": {
+            "!type": "number",
+            "!doc": "전체 노드를 기준으로 한 index"
+          },
+          "label": {
+            "!type": "string",
+            "!doc": "노드의 label"
+          },
+          "parentNode": {
+            "!type": "object",
+            "!doc": "부모 노드 객체"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "노드의 value"
+          },
+          "dpethIndex": {
+            "!type": "number",
+            "!doc": "부모 노드를 기준으로 한 index"
+          }
+        },
+        "!doc": "노드의 label을 클릭한 경우 발생한다."
+      },
+      "onimageclick": {
+        "!type": "fn(value: string, node: +Object, index: string)",
+        "node": {
+          "depth": {
+            "!type": "number",
+            "!doc": "노드의 depth"
+          },
+          "checked": {
+            "!type": "boolean",
+            "!doc": "checkbox의 check여부"
+          },
+          "index": {
+            "!type": "number",
+            "!doc": "전체 노드를 기준으로 한 index"
+          },
+          "label": {
+            "!type": "string",
+            "!doc": "노드의 label"
+          },
+          "parentNode": {
+            "!type": "object",
+            "!doc": "부모 노드 객체"
+          },
+          "value": {
+            "!type": "string",
+            "!doc": "노드의 value"
+          },
+          "dpethIndex": {
+            "!type": "number",
+            "!doc": "부모 노드를 기준으로 한 index"
+          }
+        },
+        "!doc": "노드의 icon을 클릭한 경우 발생한다."
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "oldNode": {
+            "!type": "json",
+            "!doc": "이전 노드의 객체 (index, label, value, checked등의 정보를 담고 있다.)"
+          },
+          "newNode": {
+            "!type": "json",
+            "!doc": "현재 선택된 노드의 객체 (index, label, value, checked등의 정보를 담고 있다.)"
+          }
+        }
+      }
+    },
+    "panelContainer": {},
+    "fliptoggle": {},
+    "grid": {
+      "ondatadrop": {
+        "!type": "fn(info: +Object)",
+        "!doc": "dataDragDrop 옵션이 true일때, 데이터를 다른 그리드에 드랍하면 발생하는 이벤트. (데이터가 드랍된 컴포넌트에서 이벤트가 발생한다)",
+        "info": {
+          "fromRowIndex": {
+            "!type": "number",
+            "!doc": "데이터 드래그가 시작된 그리드의 rowIndex"
+          },
+          "fromId": {
+            "!type": "number",
+            "!doc": "데이터 드래그가 시작된 그리드의 id"
+          },
+          "toRowIndex": {
+            "!type": "number",
+            "!doc": "데이터가 드랍된 그리드의 rowIndex"
+          }
+        }
+      },
+      "onbodymouseover": {
+        "!type": "fn(info: +Object)",
+        "!doc": "그리드의 body에 마우스가 오버된 경우 발생",
+        "info": {
+          "colIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 column index"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 row index로 displayRowIndex를 반환한다.(displayRowIndex란 화면에 현재 보이는 그리드뷰를 기준으로 계산한 row index를 말한다)"
+          }
+        }
+      },
+      "onbodymouseout": {
+        "!type": "fn(info: +Object)",
+        "!doc": "그리드의 body에 마우스가 벗어난 경우 발생",
+        "info": {
+          "colIndex": {
+            "!type": "number",
+            "!doc": "마지막으로 마우스가 오버되었던 셀의 column index"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "마지막으로 마우스가 오버되었던 셀의 row index로 displayRowIndex를 반환한다.(displayRowIndex란 화면에 현재 보이는 그리드뷰를 기준으로 계산한 row index를 말한다)"
+          }
+        }
+      },
+      "onaftercolumnresize": {
+        "!type": "fn(info: +Object)",
+        "!doc": "컬럼 리사이즈 직후 발생한다.",
+        "info": {
+          "newWidth": {
+            "!type": "number",
+            "!doc": "리사이즈후의 컬럼 너비 (단위 px)"
+          },
+          "oldWidth": {
+            "!type": "number",
+            "!doc": "리사이즈전의 컬럼 너비 (단위 px)"
+          },
+          "colIndex": {
+            "!type": "number",
+            "!doc": "리사이즈 대상 컬럼의 index"
+          }
+        }
+      },
+      "onbeforesort": {
+        "sortInfo": {
+          "headerId": {
+            "!type": "number",
+            "!doc": "소팅 대상 컬럼의 header id"
+          },
+          "sortOrder": {
+            "!type": "number",
+            "!doc": "오름차순, 내림차순, 초기화여부"
+          },
+          "bodyColId": {
+            "!type": "number",
+            "!doc": "소팅 대상 컬럼의 body id"
+          }
+        },
+        "!type": "fn(sortInfo: +Object)",
+        "!doc": "컬럼 소트 직전에 발생합니다."
+      },
+      "oneditkeydown": {
+        "!type": "fn(info: +Object)",
+        "!doc": "셀의 에디트시 키를 누른 경우 발생하며, opera와 firefox에서 2byte짜리 문자(한글)를 입력할 때는 첫 입력시 또는 문자 조합이 완료된 후에만 발생한다.",
+        "info": {
+          "colIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 column index"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 row index로 displayRowIndex를 반환한다.(displayRowIndex란 화면에 현재 보이는 그리드뷰를 기준으로 계산한 row index를 말한다)"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: +Object)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "이벤트가 일어난 셀의 변겨오딘 value"
+          },
+          "colIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 column 번호"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 row 번호로 displayRowIndex를 반화합니다. (화면에 현재 보이는 그리드를 기준으로 계산한 row 번호를 말합니다.)"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이벤트가 일어난 셀의 이전 value"
+          }
+        }
+      }
+    },
+    "anchor": {},
+    "dataList": {
+      "onremoverow": {
+        "!type": "fn(info: JSON)",
+        "!doc": "행이 제거된 후에 발생 (여러 행이 동시에 제거되면 한번만 발생)\n```javascript\n(관련 함수)\n removeRow();\n removeRows();\n removeRange();\n removeAll();\n```\n\n\n```\n\n\n\n\n```javascript\n(참고 사항)\nsetJSON API에 의해 데이터 전체가 변경되는 경우 해당 이벤트는 발생하지 않고 ondataload 이벤트가 호출됨\ndeleteRow API와 같이 행이 제거되지 않고 행의 상태만 변경되는 API 호출 시에도 해당 이벤트는 발생하지 않음\n```\n\n",
+        "info": {"removedDataObj": {
+          "!type": "array",
+          "!doc": "제거된 행의 인덱스와 데이터를 담고 있는 객체 ({제거된 행 : 제거된 데이터 배열} 형식)"
+        }}
+      },
+      "onrowpositionchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "행의 인덱스가 변경된 경우에 발생",
+        "info": {
+          "oldRowIndex": {
+            "!type": "number",
+            "!doc": "이전의 행 인덱스 (필터가 걸린 경우 필터된 상태를 기준으로 함)"
+          },
+          "newRowIndex": {
+            "!type": "number",
+            "!doc": "이동할 행 인덱스 (필터가 걸린 경우 필터된 상태를 기준으로 함)"
+          }
+        }
+      },
+      "onbeforerowpositionchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "DataList의 행의 위치가 변경되기 직전에 발생하여 변경 적용 여부를 결정\n\n반환 값이 false면 변경이 취소되고 그 외 값을 반환할 경우 적용됨\n\n(필터 사용 시 필터가 적용된 상태 기준으로 동작)",
+        "info": {
+          "oldRowIndex": {
+            "!type": "number",
+            "!doc": "이동 전 행의 위치"
+          },
+          "newRowIndex": {
+            "!type": "number",
+            "!doc": "이동할 행의 위치"
+          }
+        }
+      },
+      "onbeforecelldatachange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "하나의 셀에 대한 값이 변경되기 직전에 발생하며 변경된 값을 DataList에 적용 여부를 정할 수 있음\n\n이벤트 핸들러에서 반환 값을 false로 두면 셀 값의 변경을 취소하고 이전 데이터로 되돌리며, 그 외에는 변경된 값을 적용",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 셀의 행 인덱스"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          },
+          "colID": {
+            "!type": "number",
+            "!doc": "이벤트가 일어난 컬럼의 columnID"
+          }
+        }
+      },
+      "oncelldatachange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "하나의 셀에 대한 값이 변경된 경우 발생\n\n행이 추가, 삭제되는 등 구조 변경이나 API에 의해 복수의 셀 값이 한번에 변경되는 경우(setJSON ,insertJSON, setRowData 등) 이벤트가 발생하지 않음\n\n(필터 사용 시 필터가 적용된 상태 기준으로 동작)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "셀의 행 인덱스"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "원본 값"
+          },
+          "colID": {
+            "!type": "number",
+            "!doc": "컬럼의 아이디"
+          }
+        }
+      },
+      "oninsertrow": {
+        "!type": "fn(info: JSON)",
+        "!doc": "새로운 행이 추가된 후에 발생 (여러 행이 동시에 추가되면 한번만 발생)\n```javascript\n(관련 함수)\n insertRow();\n insertData();\n insertJSON();\n insertXML();\n```\n\n\n```\n\n\n\n\n```javascript\n(참고 사항)\nsetJSON과 같은 API를 append 모드로 호출하는 경우 해당 이벤트는 발생하지 않고 ondataload 이벤트가 호출됨\n(append 모드로 데이터가 추가되는 것은 insertRow와 다르게 취급됨)\n```\n\n",
+        "info": {"insertedDataObj": {
+          "!type": "json",
+          "!doc": "추가된 행의 인덱스와 데이터를 담고 있는 1차원 배열 JSON"
+        }}
+      }
+    },
+    "selectbox": {
+      "onchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "선택항목 변경 시 발생",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 값"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 값"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "변경된 value"
+          },
+          "newSelectedIndex": {
+            "!type": "number",
+            "!doc": "변경된 index"
+          },
+          "oldSelectedIndex": {
+            "!type": "number",
+            "!doc": "이전 index"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "이전 value"
+          }
+        }
+      }
+    },
+    "pageList": {"onviewchange": {
+      "!type": "fn(info: +Object)",
+      "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+      "info": {
+        "newSelectedIndex": {
+          "!type": "number",
+          "!doc": "변경된 index"
+        },
+        "oldSelectedIndex": {
+          "!type": "number",
+          "!doc": "이전 index"
+        }
+      }
+    }},
+    "gridView": {
+      "onbodymouseout": {
+        "!type": "fn(info: +Object)",
+        "!doc": "GridView 내의 바디에서 마우스가 벗어난 경우 발생",
+        "info": {
+          "colIndex": {
+            "!type": "number",
+            "!doc": "마지막으로 마우스가 오버된 셀의 컬럼 인덱스"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "마지막으로 마우스가 오버된 셀의 행 인덱스로, displayRowIndex를 반환 (displayRowIndex란 화면에 현재 보이는 GridView를 기준으로 계산한 행의 인덱스를 의미함)"
+          }
+        }
+      },
+      "onaftercolumnmove": {
+        "!type": "fn(info: +Object)",
+        "!doc": "컬럼의 이동이 발생한 직후 발생\n```javascript\n(관련 속성)\n columnMove=true\n```\n\n",
+        "info": {
+          "endColumnIndex": {
+            "!type": "number",
+            "!doc": "컬럼의 이동이 끝나는 지점(startColumn의 왼쪽 위치)에 있는 컬럼의 인덱스"
+          },
+          "startColumnID": {
+            "!type": "string",
+            "!doc": "컬럼의 이동을 시작한 컬럼의 아이디"
+          },
+          "startColumnIndex": {
+            "!type": "number",
+            "!doc": "컬럼의 이동을 시작한 컬럼의 인덱스(화면기준)"
+          },
+          "endColumnID": {
+            "!type": "number",
+            "!doc": "컬럼의 이동이 끝나는 지점(startColumn의 왼쪽 위치)에 있는 컬럼의 아이디"
+          }
+        }
+      },
+      "onsubtotaldblclick": {
+        "!type": "fn(info: JSON)",
+        "!doc": "부분합이 더블클릭된 경우 발생하는 이벤트",
+        "info": {
+          "endRowIndex": {
+            "!type": "number",
+            "!doc": "계산 대상의 마지막 행 인덱스"
+          },
+          "colID": {
+            "!type": "string",
+            "!doc": "부분합의 컬럼 아이디"
+          },
+          "startRowIndex": {
+            "!type": "number",
+            "!doc": "계산 대상의 첫 번째 행 인덱스"
+          },
+          "element": {
+            "!type": "object",
+            "!doc": "DOM 객체"
+          }
+        }
+      },
+      "oneditkeydown": {
+        "!type": "fn(info: +Object)",
+        "!doc": "셀 편집할 때 키를 누른 경우 발생\n\nOpera와 Firefox에서 2-byte짜리 문자(한글)를 입력할 때는 첫 입력시 또는 문자 조합이 완료된 후에만 발생",
+        "info": {
+          "colIndex": {
+            "!type": "number",
+            "!doc": "셀의 컬럼 인덱스"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "셀의 행 인덱스로, displayRowIndex를 반환(displayRowIndex란 화면에 현재 보이는 그리드를 기준으로 계산한 행 인덱스를 의미함)"
+          }
+        }
+      },
+      "oneditkeyup": {
+        "!type": "fn(info: JSON)",
+        "!doc": "키보드에서 키를 눌렀다 놓았을 때 발생\n\ninputType이 text, textArea, textImage, secret, calendar인 경우에만 지원하는 이벤트",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "키가 입력된 후의 값"
+          },
+          "keyCode": {
+            "!type": "number",
+            "!doc": "입력된 키의 코드값"
+          },
+          "colIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 발생한 셀의 컬럼 인덱스"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "이벤트가 발생한 셀의 행 인덱스"
+          },
+          "inputType": {
+            "!type": "string",
+            "!doc": "이벤트가 발생한 셀의 inputType"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "키가 입력되기 전의 값"
+          },
+          "colID": {
+            "!type": "string",
+            "!doc": "이벤트가 발생한 셀의 컬럼 아이디"
+          }
+        }
+      },
+      "ondatadrop": {
+        "!type": "fn(info: +Object)",
+        "!doc": "dataDragDrop 옵션이 true일때, 데이터를 다른 그리드에 드랍하면 발생\n\n데이터가 드랍된 GridView에서 이벤트가 발생",
+        "info": {
+          "fromRowIndex": {
+            "!type": "number",
+            "!doc": "데이터의 드래그가 시작된 그리드의 행 인덱스"
+          },
+          "fromId": {
+            "!type": "number",
+            "!doc": "데이터의 드래그가 시작된 그리드의 아이디"
+          },
+          "toRowIndex": {
+            "!type": "number",
+            "!doc": "데이터가 드랍된 그리드의 행 인덱스"
+          }
+        }
+      },
+      "onbeforecolumnmove": {
+        "!type": "fn(info: +Object)",
+        "!doc": "컬럼의 이동이 발생하기 직전에 발생",
+        "info": {
+          "endColumnIndex": {
+            "!type": "number",
+            "!doc": "컬럼의 이동이 끝나는 지점에 있는 컬럼(startColumn의 왼쪽 위치)의 인덱스"
+          },
+          "startColumnID": {
+            "!type": "string",
+            "!doc": "컬럼의 이동을 시작한 컬럼의 아이디"
+          },
+          "startColumnIndex": {
+            "!type": "number",
+            "!doc": "컬럼의 이동을 시작한 컬럼의 인덱스 (화면기준)"
+          },
+          "endColumnID": {
+            "!type": "number",
+            "!doc": "컬럼의 이동이 끝나는 지점에 있는 컬럼(startColumn의 왼쪽 위치)의 아이디"
+          }
+        }
+      },
+      "onbodymouseover": {
+        "!type": "fn(info: +Object)",
+        "!doc": "그리드의 바디에 마우스가 오버된 경우 발생",
+        "info": {
+          "colIndex": {
+            "!type": "number",
+            "!doc": "마우스 오버가 일어난 셀의 컬럼 인덱스"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "마우스 오버가 일어난 셀의 행 인덱스로, displayRowIndex를 반환 (displayRowIndex란 화면에 현재 보이는 그리드뷰를 기준으로 계산한 행 인덱스를 의미함)"
+          }
+        }
+      },
+      "onsubtotalclick": {
+        "!type": "fn(info: JSON)",
+        "!doc": "부분합이 클릭된 경우 발생하는 이벤트",
+        "info": {
+          "endRowIndex": {
+            "!type": "number",
+            "!doc": "계산 대상의 마지막 행 인덱스"
+          },
+          "colID": {
+            "!type": "string",
+            "!doc": "부분합의 컬럼 아이디"
+          },
+          "startRowIndex": {
+            "!type": "number",
+            "!doc": "계산 대상의 첫 번째 행 인덱스"
+          },
+          "element": {
+            "!type": "object",
+            "!doc": "DOM 객체"
+          }
+        }
+      },
+      "oncontextopen": {
+        "!type": "fn(rowIndex: number, columnIndex: number, focusedCellInfo: +Object, info: JSON)",
+        "!doc": "컨텍스트 메뉴가 표시될 때 발생\n\n[SystemMenu 목록]\n\nGroup                 : 선택 컬럼 그룹\n\nUngroup               : 선택 컬럼 그룹 해제\n\nUngroupAll            : 전체 그룹 해제\n\nColumnHide            : 선택 컬럼 숨기기\n\nColumnShowAll         : 전체 컬럼 숨기기 해제\n\nColumnFix             : 선택 컬럼 틀고정\n\nColumnUnfixAll        : 전체 컬럼 틀고정 취소\n\nColumnAdjustWidth     : 선택 컬럼 크기 자동 맞추기\n\nColumnAdjustAuto      : 전체 컬럼 크기 자동 맞추기\n\nColumnAdjustAutoNone  : 컬럼 크기 자동 맞추기 해제\n\nFoldAll               : 전체 그룹 접기\n\nUnfoldAll             : 전체 그룹 펼치기",
+        "info": {
+          "isHeader": {
+            "!type": "boolean",
+            "!doc": "클릭된 셀이 헤더인지 여부"
+          },
+          "headerId": {
+            "!type": "string",
+            "!doc": "클릭된 셀이 헤더인 경우 헤더의 아이디"
+          }
+        }
+      },
+      "oncolumnwidthchange": {
+        "!type": "fn(info: +Object)",
+        "!doc": "컬럼 너비가 변하는 경우 발생",
+        "info": {
+          "columnIndex": {
+            "!type": "number",
+            "!doc": "너비가 변한 컬럼의 인덱스"
+          },
+          "newWidth": {
+            "!type": "number",
+            "!doc": "변경 후 컬럼 너비"
+          },
+          "oldWidth": {
+            "!type": "number",
+            "!doc": "변경 전 컬럼 너비"
+          },
+          "columnID": {
+            "!type": "string",
+            "!doc": "너비가 변한 컬럼의 아이디"
+          }
+        }
+      },
+      "onheadermouseout": {
+        "!type": "fn(info: +Object)",
+        "!doc": "그리드의 헤더에 마우스가 아웃된 경우 발생",
+        "info": {
+          "newHeaderId": {
+            "!type": "string",
+            "!doc": "마우스가 그리드의 헤더에서 빠져 나간 후 마우스가 이동한 새로운 헤더의 아이디"
+          },
+          "oldHeaderId": {
+            "!type": "string",
+            "!doc": "마우스가 빠져 나가기 전 헤더의 아이디"
+          }
+        }
+      },
+      "onbeforesort": {
+        "sortInfo": {
+          "headerId": {
+            "!type": "number",
+            "!doc": "정렬 대상 컬럼의 헤더의 아이디"
+          },
+          "sortOrder": {
+            "!type": "number",
+            "!doc": "오름차순, 내림차순, 초기화여부"
+          },
+          "bodyColId": {
+            "!type": "number",
+            "!doc": "정렬 대상 컬럼의 바디의 아이디"
+          }
+        },
+        "!type": "fn(sortInfo: +Object)",
+        "!doc": "컬럼 정렬 직전에 발생하며, 정렬 여부 반환\n\n단, sortOrder가 1인 경우 오름차순, -1인 경우 내림차순, 0인 경우에는 정렬 여부 체크하지 않음"
+      },
+      "ongroupby": {
+        "options": {
+          "hideHeader": {
+            "!type": "boolean:n",
+            "!doc": "결과물의 숨김 상태"
+          },
+          "sortIndex": {
+            "!type": "array:n",
+            "!doc": "그룹핑의 기준이 될 컬럼 인덱스"
+          },
+          "closeGroup": {
+            "!type": "boolean:n",
+            "!doc": "그룹핑 결과물 숨김 상태"
+          },
+          "hideFooter": {
+            "!type": "boolean:n",
+            "!doc": "결과물의 숨김 상태"
+          },
+          "showDisplayData": {
+            "!type": "boolean:n",
+            "!doc": "depthStr()에 의해 깊이(Depth) 정보 표시할 경우 데이터를 displayFormatter로 바꾼 값으로 표시"
+          },
+          "rowNumFooter": {
+            "!type": "boolean:n",
+            "!doc": "rowNumVisible=\"true\"인 경우, 전체 건수를 푸터에 표시"
+          },
+          "rowNumHeader": {
+            "!type": "boolean:n",
+            "!doc": "rowNumVisible=\"true\"인 경우, 전체 건수를 헤더에 표시"
+          },
+          "rowStatusFooter": {
+            "!type": "boolean:n",
+            "!doc": "rowStatusVisible=\"true\"인 경우, 전체 건수를 푸터에 표시"
+          },
+          "showOnlyLastDepth": {
+            "!type": "boolean:n",
+            "!doc": "depthStr()에 의해 깊이(Depth) 정보 표시할 경우 마지막 깊이(Depth)만 표시"
+          },
+          "groupbyFooter": {
+            "!type": "object:n",
+            "!doc": "전체 건수를 푸터에 표현하는 방식 설정"
+          },
+          "sortOrder": {
+            "!type": "array:n",
+            "!doc": "1로 설정되면 오름차순 정렬, -1로 설정되면 내림차순 정렬"
+          },
+          "rowStatusHeader": {
+            "!type": "boolean:n",
+            "!doc": "rowStatusVisible=\"true\"인 경우, 전체 건수를 헤더에 표시"
+          },
+          "groupbyHeader": {
+            "!type": "object:n",
+            "!doc": "전체 건수를 헤더에 표현하는 방식 설정"
+          }
+        },
+        "!type": "fn(options: +Object)",
+        "!doc": "groupby 영역으로 컬럼을 드래그했을 때 발생\n\ngroupby 관련 설정이 담긴 객체가 인자로 넘어옴\n\n넘어온 인자에 groupbyHeader, groupbyFooter 속성을 추가로 정의한 다음, groupby(options) API를 수동으로 호출해야 동작함\n```javascript\n(관련 속성)\n groupbyZone=true\n```\n\n"
+      },
+      "onheadermouseover": {
+        "!type": "fn(info: +Object)",
+        "!doc": "그리드의 header에 마우스가 오버된 경우 발생.",
+        "info": {
+          "header_id": {
+            "!type": "string",
+            "!doc": "마우스 오버된 header의 header_id"
+          },
+          "id": {
+            "!type": "string",
+            "!doc": "마우스 오버된 header의 cell id"
+          }
+        }
+      },
+      "onviewchange": {
+        "!type": "fn(info: +Object)",
+        "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음 (native onchange 이벤트와 유사함)",
+        "info": {
+          "newValue": {
+            "!type": "string",
+            "!doc": "셀의 변경된 값"
+          },
+          "colIndex": {
+            "!type": "number",
+            "!doc": "셀의 컬럼 인덱스"
+          },
+          "rowIndex": {
+            "!type": "number",
+            "!doc": "셀의 행 인덱스로, displayRowIndex를 반환 (displayRowIndex란 화면에 현재 보이는 GridView기준으로 계산한 행 인덱스를 의미)"
+          },
+          "oldValue": {
+            "!type": "string",
+            "!doc": "셀의 변경되기 전의 값"
+          },
+          "colId": {
+            "!type": "string",
+            "!doc": "셀의 컬럼 아이디"
+          }
+        }
+      }
+    },
+    "pageControl": {"onviewchange": {
+      "!type": "fn(info: +Object)",
+      "!doc": "키보드 또는 마우스 조작을 통해 값이 변경된 경우 발생.\n\n스크립트를 통해 값이 변경된 경우에는 발생하지 않음. (native onchange 이벤트와 유사함.)",
+      "info": {
+        "newSelectedIndex": {
+          "!type": "number",
+          "!doc": "변경된 index"
+        },
+        "oldSelectedIndex": {
+          "!type": "number",
+          "!doc": "이전 index"
+        }
+      }
+    }},
+    "span": {}
+  }}
+}

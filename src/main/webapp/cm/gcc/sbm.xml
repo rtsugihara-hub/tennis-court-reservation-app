@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+xmlns:ev="http://www.w3.org/2001/xml-events"
+xmlns:w2="http://www.inswave.com/websquare"
+xmlns:xf="http://www.w3.org/2002/xforms">
+<head meta_screenName="通信関数" meta_screenId="$c.sbm" meta_screenDesc="通信関数（submissionまたはajax通信）を作成する。">
+		<w2:type>COMMON</w2:type>
+		<w2:buildDate/>
+		<w2:MSA/>
+		<xf:model>
+			<w2:dataCollection baseNode="map"/>
+			<w2:workflowCollection/>
+		</xf:model>
+		<w2:layoutInfo/>
+		<w2:publicInfo method="scwin.getContextPath,scwin.__preSubmitFunction,scwin.__setActionParam,scwin.__callbackSubmitFunction,scwin.__submitErrorHandler,scwin.execute,scwin.executeDynamic,scwin.executeWorkflow,scwin.create,scwin.getResultCode,scwin.getStatusMessage,scwin.resultMsg,scwin.setAction,scwin.getServiceURL,scwin.getMessageCode"/>
+		<script lazy="false" type="text/javascript"><![CDATA[
+/**
+ * @component
+ * @componentName udc_sbm
+ * @pluginName
+ * @company
+ * @developer
+ * @category /cm/gcc
+ * @notSupportBrowser
+ * @version
+ * @htmlRender
+ * @icon
+ * @disableIcon
+ * @description
+ * @width
+ * @height
+ * @license
+ * @imagePath
+ * @homepage
+ */
+// サーバー通信サービス呼び出しのためのContext Path
+scwin.CONTEXT_PATH = "";
+
+// サーバー通信サービス呼び出しのためのService Url（Context Path以下のパス）
+scwin.SERVICE_URL = "";
+
+// サーバー通信の基本モード ( "asynchronous" / "synchronous") - "synchronous"は非推奨の通信方式
+scwin.DEFAULT_OPTIONS_MODE = "asynchronous";
+
+// サーバー通信の基本メディアタイプ
+scwin.DEFAULT_OPTIONS_MEDIATYPE = "application/json";
+
+// GET Methodに対してRESTful方式でURLが生成されるようにするオプション（true：動作、false：非動作）
+// RESTFul URLの生成規則に関する詳細な説明については、scwin.setActionParamファンクションのコメントを参照
+scwin.IS_RESTFUL_URL = false;
+
+// 通信状態コード
+scwin.MESSAGE_CODE = {
+    STATUS_ERROR: "E",
+    STATUS_SUCCESS: "S",
+    STATUS_WARNING: "W",
+    STATUS_INFO: "I"
+};
+
+scwin.onpageload = function () {
+
+};
+
+/**
+ * @method
+ * @name getContextPath
+* @description グローバルに宣言されたContext Path値を取得する。
+ * @hidden N
+ * @exception 
+ * @example $c.sbm.getContextPath();
+ */
+scwin.getContextPath = function () {
+    return scwin.CONTEXT_PATH;
+};
+
+/**
+ * @method
+ * @name __preSubmitFunction
+* @description submissionの共通設定で使用。
+* submission通信の直前に呼び出されます。
+* return trueの場合は通信を実行し、return falseの場合は通信を中断します
+ * 
+* @param {Object} sbmObj サブミッションオブジェクト
+* @returns {Boolean} 通信実行の可否
+ * @hidden N
+ * @exception 
+ */
+scwin.__preSubmitFunction = function (sbmObj) {
+    if (($c.util.isEmpty(scwin.CONTEXT_PATH) === false) && (sbmObj.action.indexOf(scwin.CONTEXT_PATH) !== 0)) {
+        sbmObj.action = scwin.CONTEXT_PATH + sbmObj.action;
+    }
+
+    // RESTful API方式の処理のため、GETメソッドに対してリクエストデータをパス変数置換およびQueryStringとして生成します
+    if (scwin.IS_RESTFUL_URL === true) {
+        $c.sbm.__setActionParam(sbmObj);
+    }
+};
+
+/**
+ * @method
+ * @name __setActionParam
+ * @description
+* REST API方式の処理のため、GETメソッドに対してリクエストデータをPath Variable置換およびQueryStringとして生成します。
+ * 
+* 1. Path Variableの処理：Actionで"/testJsonMap/{procId}/{seq}/"のようにPath Variable (${procId}, ${seq})を宣言する場合、
+*	 該当変数をDataMapやRequestData（JSON）に定義されたKeyのValueに置換します。
+*	 DataMapやRequestData（JSON）内に、Path Variable（{procId}、{seq}）で定義されたprocIdとseqのKey（Column）が存在する必要があります。
+*	 Keyが存在しない場合、Path Variableに追加しません。
+*	 パス変数に追加されたキー値は、GET方式の場合に生成されるQueryStringから除外されます。
+ *	 
+* 2. QueryStringの処理：GET Methodでアクションを呼び出す場合、該当する変数をDataMapまたはRequestData（JSON）に定義されたKeyとValueに置換します。
+*	 DataMapやRequestData（JSON）内に、Path Variable（{procId}、{seq}）で定義されたprocIdとseqのKey（Column）が存在する必要があります。
+*	 単一のデータ（Map）のみをQueryStringとして生成してサーバーに送信し、Array形式のデータの場合はQueryStringに含めない。
+ *
+* @param {Object} sbmObj Submissionオブジェクト
+ * @hidden N
+ * @exception 
+ * @example
+// URLにQueryString方式でDataMapに定義されたデータを追加して渡す例示コード
+// sbm_submission1.ref = "data:json,dma_dataMap1"
+// sbm_submission1.action = "/restful/testJsonMap2"
+// 生成されたRequest URL : http://127.0.0.1:8080/restful/testJsonMap2.do?procId=PR001&subId=SB002&name=Peter&tel=010-2223-4421
+scwin.btn_search1_onclick = function(e) {
+    $c.sbm.execute(sbm_submission1);
+};
+
+以下は、JSONオブジェクトをQueryString方式でURLに追加して送信する例示コードです：
+
+```javascript
+// JSONオブジェクトをQueryString方式でURLに追加して送信する例示コード
+
+// JSONオブジェクト
+const data = {
+    name: "John Doe",
+    age: 30,
+    city: "New York"
+};
+
+// JSONオブジェクトをQueryStringに変換
+const queryString = Object.keys(data).map(key => {
+    return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
+}).join('&');
+
+// ベース URL
+const baseUrl = "https://api.example.com/users";
+
+// QueryStringをURLに追加
+const fullUrl = baseUrl + "?" + queryString;
+
+console.log(fullUrl);
+// 出力: https://api.example.com/users?name=John%20Doe&age=30&city=New%20York
+
+// このURLを使用してリクエストを送信
+fetch(fullUrl)
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error('Error:', error));
+```
+
+このコードは以下の手順で動作します：
+
+1. JSONオブジェクトを定義します。
+2. Object.keys()とmap()を使用して、JSONオブジェクトをQueryString形式に変換します。
+3. encodeURIComponent()を使用して、キーと値をURLエンコードします。
+4. join('&')を使用して、各キー・値ペアを'&'で連結します。
+5. ベースURLに'?'を追加し、その後にQueryStringを連結して完全なURLを作成します。
+6. 最後に、このURLを使用してfetch()でリクエストを送信します。
+
+この方法により、JSONデータをQueryString形式でURLに追加して送信することができます。
+// sbm_submission2.action = "/restful/testJsonMap2"
+// 生成されたRequest URL : http://127.0.0.1:8080/restful/testJsonMap2.do?procId=PR001&subId=SB002&name=Peter&tel=010-2223-4421
+scwin.btn_search2_onclick = function(e) {
+    const param = {
+        procId : "PR001",
+        subId : "SB002",
+        name : "Peter",
+        tel : "010-2223-4421"
+    };
+    $c.sbm.execute(sbm_submission2, param);
+};	
+
+// refで定義されたDataMapのデータをPath VariableとQueryString方式を組み合わせてURLに追加して送信する例示コード
+// DataMapに定義されているColumn Idのうち、Path Variableとして定義されていないカラム（name、tel）がQueryString方式で追加されます。
+// sbm_submission3.ref = "data:json,dma_dataMap1"
+// sbm_submission3.action = "/restful/testJsonMap3/{procId}/{subId}"
+// 生成されたRequest URL : http://127.0.0.1:8080/restful/testJsonMap3/PR001/SB002?name=Peter&tel=010-2223-4421
+scwin.btn_search3_onclick = function(e) {
+    $c.sbm.execute(sbm_submission3);
+};
+ */
+scwin.__setActionParam = function (sbmObj) {
+    let requestData = sbmObj.requestData || WebSquare.ModelUtil.getRefToReqData(sbmObj);
+
+    if ($c.util.isEmpty(requestData)) {
+        return;
+    }
+
+    if (typeof requestData === "string") {
+        requestData = JSON.parse(requestData);
+    }
+
+    if ($c.util.isEmpty(sbmObj.__action)) {
+        sbmObj.__action = sbmObj.action;
+    }
+
+    let actionUrl = sbmObj.__action;
+
+    let queryParam = {};
+    if (sbmObj.__action.indexOf("/{") > -1) {
+        actionUrl = actionUrl.substr(0, actionUrl.indexOf("/{"));
+    }
+
+    // requestDataをQueryStringとして生成し、submission.actionに追加します。
+    if ($c.util.isJSON(requestData)) {
+
+        // DataMapに保存されたデータをqueryParamに保存する。
+        for (let key in requestData) {
+            if (($c.util.isEmpty(requestData[key]) === false) && ($c.util.isJSON(requestData[key]) === false)) {
+                queryParam[key] = encodeURIComponent(requestData[key]);
+            } else if (($c.util.isJSON(requestData[key])) && ($c.util.isArray(requestData[key]) === false)) {
+                for (let subKey in requestData[key]) {
+                    if (($c.util.isEmpty(requestData[key][subKey]) === false) && ($c.util.isJSON(requestData[key][subKey]) === false)) {
+                        queryParam[subKey] = encodeURIComponent(requestData[key][subKey]);
+                    }
+                }
+            }
+        }
+
+        // URLにPath Variable（例：{paramId}）として定義された変数をqueryParamで定義された値に置換し、queryParamから削除する。
+        // クエリパラメータにPath Variableと一致する値がない場合はスキップする。
+        const actionArr = sbmObj.__action.split(/(\{[^}]*})/g);
+        for (let i = 0; i < actionArr.length; i++) {
+            if (actionArr[i].match(/(\{[^}]*})/g) !== null) {
+                let paramKey = actionArr[i].substr(1, actionArr[i].indexOf("}") - 1);
+                if (typeof queryParam[paramKey] !== "undefined") {
+                    actionUrl += "/" + queryParam[paramKey];
+                    delete queryParam[paramKey];
+                }
+            }
+        }
+
+        // GETメソッドで送信する場合、queryParamに保存されたKey、ValueをQueryStringとして生成し、Action URLに付加します。
+        if (sbmObj.method === "get") {
+            for (key in queryParam) {
+                if (actionUrl.indexOf("?") === -1) {
+                    actionUrl += "?" + key + "=" + queryParam[key];
+                } else {
+                    actionUrl += "&" + key + "=" + queryParam[key];
+                }
+            }
+        }
+
+        sbmObj.action = actionUrl;
+    }
+};
+
+
+/**
+ * @method
+ * @name __callbackSubmitFunction
+* @description すべてのsubmissionのdefaultCallback - $c.sbm.submitErrorHandlerより先に実行される。(400 Error) config.xmlに設定
+* @param {Object} resObj レスポンスデータオブジェクト
+* @param {Object} sbmObj Submissionオブジェクト
+ * @hidden N
+ * @exception 
+ */
+scwin.__callbackSubmitFunction = function (resObj, sbmObj) {
+    let $p = $c.win.__getScope(sbmObj).scwin.$w;
+
+    // サーバーと接続できない場合、responseStatusCodeが0として発生します。
+    if ((resObj.responseStatusCode < 100) || (resObj.responseStatusCode > 599)) {
+        let detailStr = "HTTP STATUS INFO";
+        detailStr += resObj.responseStatusCode;
+        detailStr += " - URI:";
+        detailStr += resObj.resourceUri;
+
+        const msgObj = {
+            statusCode: "E",
+            errorCode: resObj.responseStatusCode,
+            message: "サーバーに接続できません。詳細については管理者にお問い合わせください。",
+            messageDetail: detailStr
+        };
+
+        $c.sbm.resultMsg(msgObj);
+        return false;
+    }
+
+    if ($c.util.isEmpty(resObj.errorType) && typeof sbmObj._promise_submitDoneHandler === "function") {
+        sbmObj._promise_submitDoneHandler(resObj);
+    } else if (!$c.util.isEmpty(resObj.errorType) && typeof sbmObj._promise_submitErrorHandler === "function") {
+        sbmObj._promise_submitErrorHandler(resObj);
+    }
+
+    const rsJSON = resObj.responseJSON || null;
+    if (rsJSON && rsJSON.rsMsg) {
+        $c.sbm.resultMsg(rsJSON.rsMsg);
+    }
+};
+
+/**
+ * @method
+ * @name __submitErrorHandler
+* @description サブミッション中にエラーが発生した場合に呼び出される関数 - サーバーエラー(500 error)
+* @param {Object} resObj レスポンスデータオブジェクト
+ * @hidden N
+ * @exception 
+ */
+scwin.__submitErrorHandler = function (resObj) {
+    let $p = $c.win.__getScope(resObj.id).scwin.$w;
+
+    let detailStr = "HTTP STATUS INFO";
+    detailStr += resObj.responseReasonPhrase;
+    detailStr += " ";
+    detailStr += resObj.responseStatusCode;
+    detailStr += "URI:";
+    detailStr += resObj.resourceUri;
+    detailStr += resObj.responseBody;
+
+    const msgObj = {
+        statusCode: "E",
+        errorCode: "E9998",
+        message: "サーバーエラーです。詳細については管理者にお問い合わせください。",
+        messageDetail: detailStr
+    };
+
+    $c.sbm.resultMsg(msgObj);
+};
+
+
+/**
+ * @method
+ * @name execute
+* @description サーバー通信拡張モジュール、Submissionを実行します。
+* @param {Object} sbmObj submissionオブジェクト
+* @param {Object} requestData [Default : null, JSON, XML] リクエストデータで、submissionに登録されたrefを無視し、現在の値が割り当てられます。
+* @param {Object} compObj [Default : null] 送信中に無効にするコンポーネント
+ * @hidden N
+ * @exception 
+ * @example
+// Submissionのref属性にサーバーに送信するDataCollectionを設定する場合
+$c.sbm.execute(sbm_search); 
+
+// サーバーに送信するDataCollectionをSubmissionのref属性に設定せず、JSONオブジェクトを送信する場合
+const searchParam = {
+    id : "A0001"
+};
+$c.sbm.execute(sbm_search, searchParam); 
+ */
+scwin.execute = function (sbmObj, requestData, compObj) {
+    return new Promise(function (resolve, reject) {
+        if (typeof sbmObj === "object") {
+            const _sbmObj = (typeof sbmObj == 'object') ? sbmObj : (typeof sbmObj == 'string') ? $p.getSubmission(sbmObj) : sbmObj;
+
+            if ($c.util.isEmpty(_sbmObj.action)) {
+                const alertMsg = $c.data.getMessage("MSG_CM_00002", "action");
+                $c.win.alert(alertMsg);
+                return false;
+            }
+
+            if ($c.util.isEmpty(_sbmObj.submitDoneHandler)) {
+                _sbmObj._promise_submitDoneHandler = function (rtn) {
+                    resolve(rtn);
+                }
+            }
+
+            if ($c.util.isEmpty(_sbmObj.submitErrorHandler)) {
+                _sbmObj._promise_submitErrorHandler = function (rtn) {
+                    reject(rtn);
+                }
+            }
+
+            $p.executeSubmission(_sbmObj, requestData, compObj);
+        }
+    });
+};
+
+
+
+/**
+ * @method
+ * @name executeDynamic
+* @description Submissionを動的に生成して実行します。
+* @param {Object} options $c.sbm.createのoptionsを参照
+* @param {Object} requestData リクエストデータ
+* @param {Object} obj 送信中に無効にするコンポーネント
+ * @hidden N
+ * @exception 
+ * @example
+const searchCodeGrpOption = {
+     id : "sbm_searchCodeGrp",
+     action : "serviceId=CD0001&action=R",
+     target : 'data:json,{"id":"dlt_codeGrp","key":"data"}',
+     submitDoneHandler : scwin.searchCodeGrpCallback, isProcessMsg : false };
+$c.sbm.executeDynamic(searchCodeGrpOption);
+ */
+scwin.executeDynamic = function (options, requestData, obj) {
+    let submissionObj = $c.util.getComponent(options.id);
+
+    if (submissionObj === null) {
+        $c.sbm.create(options);
+        submissionObj = $c.util.getComponent(options.id);
+    } else {
+        $p.deleteSubmission(options.id);
+        $c.sbm.create(options);
+        submissionObj = $c.util.getComponent(options.id);
+    }
+
+    return $c.sbm.execute(submissionObj, requestData, obj);
+};
+
+/**
+ * @method
+ * @name executeWorkflow
+* @description ワークフローを実行します。
+* @param {Object} options workflowオブジェクト or workflow ID
+ * @hidden N
+ * @exception 
+ * @example
+$c.sbm.executeWorkflow(wkf_basicInfo);
+ */
+scwin.executeWorkflow = function (workflowObj) {
+    $p.executeWorkflow(workflowObj);
+};
+
+
+/**
+ * @method
+ * @name create
+* @description Submission オブジェクトを動的に生成します。
+* @param {Object} options Submissionを生成するオプションのJSONオブジェクト
+* @param {String} options.id submission オブジェクトのID。通信モジュール実行時に必要。
+* @param {String} options.ref サーバーに送信する（request）DataCollectionの条件式（条件によって式が複雑になる）またはInstance DataのXPath。
+* @param {String} options.target サーバーからレスポンスとして受信したデータが配置されるDataCollectionの条件式。またはInstance DataのXPath。
+* @param {String} options.action 通信するサーバー側のURI。（ブラウザのセキュリティポリシーにより、crossDomainはサポートされていません。）
+ * @param {String} options.method [default: get, post, urlencoded-post]
+* - get : パラメータをURLに付加する方式（HTMLと同じ）。
+* - post : パラメータをbody部分に含める方式（HTMLと同じ）
+ * - urlencoded-post : urlencoded-post.
+ * @param {String} options.mediatype [default: application/xml, text/xml, application/json, application/x-www-form-urlencoded]
+* application/x-www-form-urlencoded：ウェブフォーム方式（HTML方式）。application/json：JSON方式。application/xml：XML方式。text/xml：XML方式
+* (2つの違いについてはhttp://stackoverflow._com/questions/4832357を参照)
+* @param {String} options.mode [default: synchronous, synchronous] サーバーとの通信方式。 asynchronous:非同期。 synchronous:同期
+* @param {String} options.encoding [default: utf-8, euc-kr, utf-16] サーバー側のencoding type設定(euc-kr/utf-16/utf-8)
+* @param {String} options.replace [default: none, all, instance] アクションから受け取ったresponse dataを適用する区分値。
+*   - all : ドキュメント全体をサーバーからの応答データで置き換え。
+*   - instance : 該当するデータ区間。
+*   - none : 置換しない。
+* @param {String} options.processMsg submission通信中に表示するメッセージ。
+* @param {String} options.errorHandler submission時にエラーが発生した場合に実行する関数名。
+* @param {String} options.customHandler submission呼び出し時に実行する関数名。
+* @param {requestCallback} options.submitHandler {script type="javascript" ev:event="xforms-submit"}に対応する関数。
+* @param {requestCallback} options.submitDoneHandler {script type="javascript" ev:event="xforms-submit-done"}に対応する関数
+* @param {requestCallback} options.submitErrorHandler {script type="javascript" ev:event="xforms-submit-error"}に対応する関数
+ * @hidden N
+ * @exception 
+ * @example
+$c.sbm.create(options);
+ */
+scwin.create = function (options) {
+    let ref = options.ref || "";
+    let target = options.target || "";
+    let action = options.action; // ajaxサービスリクエストアドレス
+    let mode = options.mode || scwin.DEFAULT_OPTIONS_MODE; // asynchronous(default)/synchronous
+    let mediatype = options.mediatype || scwin.DEFAULT_OPTIONS_MEDIATYPE; // application/x-www-form-urlencoded
+    let method = (options.method || "post").toLowerCase(); // get/post/put/delete
+    let processMsg = options.processMsg || "";
+    let instance = options.instance || "none";
+
+    let submitHandler = (typeof options.submitHandler === "function") ? options.submitHandler
+        : ((typeof options.submitHandler === "string") ? (options.submitHandler.indexOf("scwin") === 0) ? $p.id + options.submitHandler : options.submitHandler : "");
+    let submitDoneHandler = (typeof options.submitDoneHandler === "function") ? options.submitDoneHandler
+        : ((typeof options.submitDoneHandler === "string") ? (options.submitDoneHandler.indexOf("scwin") === 0) ? $p.id + options.submitDoneHandler : options.submitDoneHandler : "");
+    let submitErrorHandler = (typeof options.submitErrorHandler === "function") ? options.submitErrorHandler
+        : ((typeof options.submitErrorHandler === "string") ? (options.submitErrorHandler.indexOf("scwin") === 0) ? $p.id + options.submitErrorHandler : options.submitErrorHandler : "");
+
+    let resJson = null;
+
+    if ((options.isProcessMsg === true) && (processMsg === "")) {
+        processMsg = "処理中です";
+    } else if (options.isProcessMsg === false) {
+        processMsg = "";
+    }
+
+    const submissionObj = {
+        "id": options.id, // submissionオブジェクトのID。通信モジュール実行時に必要。
+        "ref": ref, // サーバーに送信する（request）DataCollectionの条件式（条件によって式が複雑）またはInstance DataのXPath。
+        "target": target, // サーバーからレスポンス(response)として受信したデータが配置されるDataCollectionの条件式。またはInstance DataのXPath。
+        "action": action, // 通信するサーバー側のURI。（ブラウザのセキュリティポリシーにより、crossDomainはサポートされていません。）
+        "method": method, // [default: post, get, urlencoded-post] get:パラメータをURLに付加する方式(HTMLと同じ)
+        // post:パラメータをbody部分に含める方式（HTMLと同じ）。urlencoded-post:urlencoded-post.
+        "mediatype": mediatype, // application/json
+        "encoding": "UTF-8", // [default: utf-8, euc-kr, utf-16] サーバー側のencodingタイプ設定(euc-kr/utf-16/utf-8)
+        "mode": mode, // [default: synchronous, synchronous] サーバーとの通信方式。asynchronous:非同期。synchronous:同期
+        "processMsg": processMsg, // submission通信中に表示するメッセージ。
+        "submitHandler": submitHandler,
+        "submitDoneHandler": submitDoneHandler,
+        "submitErrorHandler": submitErrorHandler
+    };
+
+    $p.createSubmission(submissionObj);
+};
+
+/**
+ * @method
+ * @name getResultCode
+* @description サーバーから送信された通信結果コードを返します。
+* @param {Object} e submission後のコールバックの状態値
+* @returns {String} 通信結果ステータスコード
+ * @hidden N
+ * @exception 
+ * @example
+// 通信結果コードがある場合
+$c.sbm.getResultCode(e);
+// return 例) E || S || W
+
+// 通信結果コードがない場合
+$c.sbm.getResultCode(e);
+// return 例) WebSquare5 ログウィンドウ - 結果状態メッセージがありません。: $c.sbm.getResultCode
+ */
+scwin.getResultCode = function (e) {
+    let rsCode = $c.sbm.getMessageCode('STATUS_ERROR');
+    try {
+        rsCode = e.responseJSON.rsMsg.statusCode;
+    } catch (ex) {
+        console.error("結果ステータスメッセージがありません。", ex);
+    }
+
+    return rsCode;
+};
+
+
+/**
+ * @method
+ * @name getStatusMessage
+* @description サーバーから送信された通信結果のステータスメッセージを返します。
+* @param {Object} e submission後のコールバックのステータス値
+* @returns {String} ステータスメッセージ
+ * @hidden N
+ * @exception 
+ * @example
+const statusMessage = $c.sbm.getStatusMessage(e);
+ */
+scwin.getStatusMessage = function (e) {
+    try {
+        return e.responseJSON.rsMsg.statusMsg;
+    } catch (ex) {
+        console.error("結果状態メッセージがありません。", ex);
+        return "";
+    }
+};
+
+/**
+ * @method
+ * @name resultMsg
+* @description statusCodeの値に応じてメッセージを出力する。
+* @param {Object} resultData ステータスコードとメッセージが含まれるJSON。
+* @param {String} resultData.message メッセージ
+* @param {String} resultData.statusCode ステータスコード値
+ * @hidden N
+ * @exception 
+ */
+scwin.resultMsg = function (resultData) {
+    if ($c.util.isEmpty(resultData.statusCode)) {
+        return;
+    }
+
+    const message = resultData.message || resultData.statusMsg || "";
+    const msgCode = scwin.MESSAGE_CODE;
+
+    switch (resultData.statusCode) {
+        case msgCode.STATUS_ERROR:
+            if (resultData.errorCode == "E0001") {
+                const alertMsg = $c.data.getMessage("MSG_CM_00003", message);
+                $c.win.alert(alertMsg, function () { $c.win.reload(); });
+            } else if ($c.util.isEmpty(message) === false) {
+                $c.win.alert(message);
+            }
+            break;
+        case msgCode.STATUS_SUCCESS:
+            if ($c.util.isEmpty(message) === false) {
+                $c.win.showToastMessage(scwin.MESSAGE_CODE.STATUS_SUCCESS, message);
+            }
+            break;
+        case msgCode.STATUS_INFO:
+            $c.win.showToastMessage(scwin.MESSAGE_CODE.STATUS_INFO, message);
+            break;
+    }
+};
+
+/**
+ * @method
+ * @name setAction
+* @description サブミッションアクションを変更します。
+* @param {Object} sbmObj サブミッションオブジェクト
+* @param {String} sbmAction サブミッションのaction
+ * @hidden N
+ * @exception 
+ * @example $c.sbm.setAction(sbm_search,"/cust/crgd/v1/user")
+ */
+scwin.setAction = function (sbmObj, sbmAction) {
+    try {
+        if (!$c.util.isEmpty(sbmObj)) {
+            sbmObj.isDefultSubmissionAction = null;
+            sbmObj.action = sbmAction || "";
+            sbmObj.__action = sbmAction || "";
+        }
+    } catch (ex) {
+        console.error(ex);
+    }
+};
+
+/**
+ * @method
+ * @name getServiceURL
+* @description グローバル定数であるSERVICE_URLの値を取得する。
+ * @param
+* @returns {String} SERVICE_URLとして宣言された定数を返します。
+ * @hidden N
+ * @exception
+ * @example const serviceURL = $c.sbm.getServiceURL();
+ */
+scwin.getServiceURL = function () {
+    return scwin.SERVICE_URL;
+};
+
+/**
+ * @method
+ * @name getMessageCode
+* @description MESSAGE_CODEで宣言されたオブジェクトに対する値を返却する。
+ * STATUS_ERROR = 'E', STATUS_SUCCESS = 'S', STATUS_WARNING = 'W', STATUS_INFO = 'I'
+* @param {string} Code MESSAGE_CODEの値の中から取得したい値
+* @returns {String} MESSAGE_CODEオブジェクトにある値のうち、パラメータに対応する値を返す
+ * @hidden N
+ * @exception
+ * @example
+ */
+scwin.getMessageCode = function (code) {
+    return scwin.MESSAGE_CODE[code];
+};
+]]></script>
+	</head>
+	<body ev:onpageload="scwin.onpageload"/>
+</html>

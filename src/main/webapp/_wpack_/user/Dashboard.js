@@ -1,0 +1,217 @@
+/*amd /user/Dashboard.xml 15770 84e64d24335e243e169fdae56abc05cf216bac7014662b9c61156f4e7192cc2b */
+define({declaration:{A:{version:'1.0',encoding:'UTF-8'}},E:[{T:1,N:'html',A:{xmlns:'http://www.w3.org/1999/xhtml','xmlns:ev':'http://www.w3.org/2001/xml-events','xmlns:w2':'http://www.inswave.com/websquare','xmlns:xf':'http://www.w3.org/2002/xforms'},E:[{T:1,N:'head',E:[{T:1,N:'w2:type',E:[{T:3,text:'COMPONENT'}]},{T:1,N:'w2:buildDate'},{T:1,N:'w2:MSA'},{T:1,N:'xf:model',E:[{T:1,N:'w2:dataCollection',A:{baseNode:'map'},E:[{T:1,N:'w2:dataMap',A:{baseNode:'map',id:'dma_dashboardSummary'},E:[{T:1,N:'w2:keyInfo',E:[{T:1,N:'w2:key',A:{id:'userName',name:'ユーザー名',dataType:'text'}},{T:1,N:'w2:key',A:{id:'availableCourtsCount',name:'利用可能コート数',dataType:'text'}},{T:1,N:'w2:key',A:{id:'activeReservationsCount',name:'予約件数',dataType:'text'}},{T:1,N:'w2:key',A:{id:'calendarTitle',name:'カレンダー年月',dataType:'text'}}]}]},{T:1,N:'w2:dataList',A:{baseNode:'list',repeatNode:'map',id:'dlt_courtList',saveRemovedData:'true'},E:[{T:1,N:'w2:columnInfo',E:[{T:1,N:'w2:column',A:{id:'id',name:'コートID',dataType:'text'}},{T:1,N:'w2:column',A:{id:'name',name:'コート名',dataType:'text'}},{T:1,N:'w2:column',A:{id:'status',name:'ステータス',dataType:'text'}},{T:1,N:'w2:column',A:{id:'isDeleted',name:'削除フラグ',dataType:'text'}}]}]},{T:1,N:'w2:dataList',A:{baseNode:'list',repeatNode:'map',id:'dlt_reservationList',saveRemovedData:'true'},E:[{T:1,N:'w2:columnInfo',E:[{T:1,N:'w2:column',A:{id:'id',name:'予約ID',dataType:'text'}},{T:1,N:'w2:column',A:{id:'userId',name:'ユーザーID',dataType:'text'}},{T:1,N:'w2:column',A:{id:'courtName',name:'コート名',dataType:'text'}},{T:1,N:'w2:column',A:{id:'date',name:'利用日',dataType:'text'}},{T:1,N:'w2:column',A:{id:'timeSlot',name:'利用時間帯',dataType:'text'}},{T:1,N:'w2:column',A:{id:'status',name:'ステータス',dataType:'text'}}]}]},{T:1,N:'w2:dataList',A:{baseNode:'list',repeatNode:'map',id:'dlt_latestReservation',saveRemovedData:'true'},E:[{T:1,N:'w2:columnInfo',E:[{T:1,N:'w2:column',A:{id:'id',name:'予約ID',dataType:'text'}},{T:1,N:'w2:column',A:{id:'courtName',name:'コート名',dataType:'text'}},{T:1,N:'w2:column',A:{id:'displayDateTime',name:'利用日時',dataType:'text'}},{T:1,N:'w2:column',A:{id:'displayStatus',name:'ステータス',dataType:'text'}}]}]}]},{T:1,N:'w2:workflowCollection'},{T:1,N:'xf:submission',A:{id:'sbm_getCourts',ref:'',target:'',action:'http://localhost:8081/api/courts',method:'get',mediatype:'application/json',encoding:'UTF-8',mode:'asynchronous','ev:submitdone':'scwin.sbm_getCourts_submitdone'}},{T:1,N:'xf:submission',A:{id:'sbm_getReservations',ref:'',target:'',action:'http://localhost:8081/api/reservations',method:'get',mediatype:'application/json',encoding:'UTF-8',mode:'asynchronous',processMsg:'読み込み中...','ev:submitdone':'scwin.sbm_getReservations_submitdone'}}]},{T:1,N:'w2:layoutInfo'},{T:1,N:'w2:publicInfo',A:{method:''}},{T:1,N:'script',A:{lazy:'false',type:'text/javascript'},E:[{T:4,cdata:function(scopeObj){with(scopeObj){scwin.currentYear = 2026;
+scwin.currentMonth = 9;
+scwin.onpageload = function () {
+  scwin.initUserAndFetch();
+};
+
+// ユーザー情報のロードとAPI通信の発行
+scwin.initUserAndFetch = function () {
+  var userStr = localStorage.getItem("user");
+  var userId = "";
+  var isAdmin = false;
+  if (userStr) {
+    try {
+      var user = JSON.parse(userStr);
+      txt_welcome.setValue("ようこそ、" + (user.name || "") + " さん！");
+      userId = user.id;
+      if (user.role === "ADMIN" || user.role === "admin") {
+        isAdmin = true;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  var targetAction = "http://localhost:8081/api/reservations";
+  if (!isAdmin && userId) {
+    targetAction = "http://localhost:8081/api/reservations/user/" + userId;
+  }
+  var sbmObj = $p.getSubmission("sbm_getReservations");
+  if (sbmObj) {
+    sbmObj.action = targetAction;
+  }
+  $p.executeSubmission("sbm_getCourts");
+};
+
+// コート取得完了ハンドラ
+scwin.sbm_getCourts_submitdone = function (e) {
+  var courtData = e.responseJSON;
+  if (Array.isArray(courtData)) {
+    dlt_courtList.setJSON(courtData);
+  }
+  $p.executeSubmission("sbm_getReservations");
+};
+
+// 予約取得完了ハンドラ
+scwin.sbm_getReservations_submitdone = function (e) {
+  var resData = e.responseJSON;
+  if (Array.isArray(resData)) {
+    dlt_reservationList.setJSON(resData);
+  }
+  scwin.updateSummary();
+  scwin.renderCalendar();
+  scwin.updateLatestReservation();
+};
+
+// 集計カードの計算
+scwin.updateSummary = function () {
+  var courtTotal = dlt_courtList.getTotalRow();
+  var availableCount = 0;
+  for (var i = 0; i < courtTotal; i++) {
+    var c = dlt_courtList.getRowJSON(i);
+    var isDel = c.isDeleted === true || c.isDeleted === "true" || c.isDeleted === 1 || c.isDeleted === "1";
+    var st = (c.status || "").toLowerCase();
+    if (!isDel && (st === "available" || st === "利用可能" || st === "")) {
+      availableCount++;
+    }
+  }
+  lbl_availableCourts.setValue(availableCount + " 件");
+  var resTotal = dlt_reservationList.getTotalRow();
+  var activeCount = 0;
+  for (var j = 0; j < resTotal; j++) {
+    var r = dlt_reservationList.getRowJSON(j);
+    var rStatus = (r.status || "").toLowerCase();
+    if (rStatus !== "cancelled" && rStatus !== "キャンセル" && rStatus !== "キャンセル済") {
+      activeCount++;
+    }
+  }
+  lbl_activeReservations.setValue(activeCount + " 件");
+};
+
+// カレンダーの動的HTML描画
+scwin.renderCalendar = function () {
+  txt_calendarTitle.setValue("■ 予約カレンダー（" + scwin.currentYear + "年 " + scwin.currentMonth + "月）");
+  var weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  var html = "";
+  for (var w = 0; w < weekDays.length; w++) {
+    var color = w === 0 ? "#dc3545" : w === 6 ? "#007bff" : "#333";
+    html += '<div style="background-color:#f8f9fa; padding:8px; text-align:center; font-weight:bold; color:' + color + '; border-bottom:1px solid #ddd;">' + weekDays[w] + '</div>';
+  }
+  var firstDay = new Date(scwin.currentYear, scwin.currentMonth - 1, 1).getDay();
+  var daysInMonth = new Date(scwin.currentYear, scwin.currentMonth, 0).getDate();
+  for (var e = 0; e < firstDay; e++) {
+    html += '<div style="background-color:#fafafa; min-height:80px; border-right:1px solid #eee; border-bottom:1px solid #eee;"></div>';
+  }
+  for (var d = 1; d <= daysInMonth; d++) {
+    var monthStr = scwin.currentMonth < 10 ? "0" + scwin.currentMonth : scwin.currentMonth;
+    var dayStr = d < 10 ? "0" + d : d;
+    var dateStr1 = scwin.currentYear + "-" + monthStr + "-" + dayStr;
+    var dateStr2 = scwin.currentYear + monthStr + dayStr;
+    html += '<div style="background-color:#fff; padding:6px; min-height:80px; box-sizing:border-box; border-right:1px solid #eee; border-bottom:1px solid #eee;">';
+    html += '<div style="font-weight:bold; font-size:13px; color:#333; margin-bottom:4px;">' + d + '</div>';
+    var resTotal = dlt_reservationList.getTotalRow();
+    for (var r = 0; r < resTotal; r++) {
+      var res = dlt_reservationList.getRowJSON(r);
+      var rStatus = (res.status || "").toLowerCase();
+      if ((res.date === dateStr1 || res.date === dateStr2) && rStatus !== "cancelled" && rStatus !== "キャンセル" && rStatus !== "キャンセル済") {
+        var isConfirmed = rStatus === "confirmed" || rStatus === "予約済";
+        var bgColor = isConfirmed ? "#d4edda" : "#e2e3e5";
+        var fontColor = isConfirmed ? "#155724" : "#383d41";
+        html += '<div style="background-color:' + bgColor + '; color:' + fontColor + '; font-size:11px; padding:3px 5px; border-radius:3px; margin-bottom:4px; border:1px solid rgba(0,0,0,0.1); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + (res.courtName || "コート") + ' (' + (res.timeSlot || "") + ')">';
+        html += (res.courtName || "コート") + '<br/>' + (res.timeSlot || "");
+        html += '</div>';
+      }
+    }
+    html += '</div>';
+  }
+  if (tbx_calendarGrid) {
+    tbx_calendarGrid.setValue(html);
+  }
+};
+
+// ★ 自分の予約の中で「今日以降で最も利用日時が近い予約1件」を取得・表示
+scwin.updateLatestReservation = function () {
+  dlt_latestReservation.removeAll();
+  var resTotal = dlt_reservationList.getTotalRow();
+  if (resTotal === 0) return;
+  var userStr = localStorage.getItem("user");
+  var currentUserId = "";
+  var isAdmin = false;
+  if (userStr) {
+    try {
+      var user = JSON.parse(userStr);
+      currentUserId = String(user.id || "");
+      if (user.role === "ADMIN" || user.role === "admin") {
+        isAdmin = true;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var validReservations = [];
+  for (var i = 0; i < resTotal; i++) {
+    var r = dlt_reservationList.getRowJSON(i);
+    var rStatus = (r.status || "").toLowerCase();
+    var rUserId = String(r.userId || "");
+    var isMyReservation = isAdmin || currentUserId !== "" && rUserId === currentUserId;
+    if (isMyReservation && rStatus !== "cancelled" && rStatus !== "キャンセル" && rStatus !== "キャンセル済") {
+      var dateStr = r.date || "";
+      if (/^\d{8}$/.test(dateStr)) {
+        dateStr = dateStr.substring(0, 4) + "-" + dateStr.substring(4, 6) + "-" + dateStr.substring(6, 8);
+      }
+      var resDate = new Date(dateStr);
+      if (!isNaN(resDate.getTime())) {
+        validReservations.push({
+          raw: r,
+          resDate: resDate,
+          diff: resDate.getTime() - today.getTime()
+        });
+      }
+    }
+  }
+  if (validReservations.length === 0) return;
+  var futureReservations = validReservations.filter(function (item) {
+    return item.diff >= 0;
+  });
+  var targetReservation = null;
+  if (futureReservations.length > 0) {
+    futureReservations.sort(function (a, b) {
+      return a.diff - b.diff;
+    });
+    targetReservation = futureReservations[0].raw;
+  } else {
+    validReservations.sort(function (a, b) {
+      return b.diff - a.diff;
+    });
+    targetReservation = validReservations[0].raw;
+  }
+  if (targetReservation) {
+    var newIdx = dlt_latestReservation.insertRow();
+    dlt_latestReservation.setCellData(newIdx, "id", targetReservation.id);
+    dlt_latestReservation.setCellData(newIdx, "courtName", targetReservation.courtName || "コート");
+    dlt_latestReservation.setCellData(newIdx, "displayDateTime", (targetReservation.date || "") + " " + (targetReservation.timeSlot || ""));
+    dlt_latestReservation.setCellData(newIdx, "displayStatus", scwin.getStatusText(targetReservation.status));
+  }
+};
+scwin.getStatusText = function (status) {
+  var s = (status || "").toLowerCase();
+  if (s === "confirmed" || s === "予約済") return "予約済";
+  if (s === "completed" || s === "利用済" || s === "来店済") return "来店済";
+  if (s === "cancelled" || s === "キャンセル" || s === "キャンセル済") return "キャンセル";
+  return status || "予約済";
+};
+
+// 前月ボタン
+scwin.btn_prevMonth_onclick = function (e) {
+  if (scwin.currentMonth === 1) {
+    scwin.currentMonth = 12;
+    scwin.currentYear -= 1;
+  } else {
+    scwin.currentMonth -= 1;
+  }
+  scwin.renderCalendar();
+};
+
+// 次月ボタン
+scwin.btn_nextMonth_onclick = function (e) {
+  if (scwin.currentMonth === 12) {
+    scwin.currentMonth = 1;
+    scwin.currentYear += 1;
+  } else {
+    scwin.currentMonth += 1;
+  }
+  scwin.renderCalendar();
+};
+}}}]}]},{T:1,N:'body',A:{'ev:onpageload':'scwin.onpageload'},E:[{T:1,N:'xf:group',A:{style:'display: flex; flex-direction: column; min-height: 100vh;',id:'grp_wrapper'},E:[{T:1,N:'w2:wframe',A:{id:'wfm_header',src:'/components/Header.xml',style:'width: 100%; min-height: 60px;'}},{T:1,N:'xf:group',A:{style:'display: flex; flex: 1;',id:'grp_body'},E:[{T:1,N:'w2:wframe',A:{id:'wfm_sidebar',src:'/components/Sidebar.xml',style:'width: 220px; min-height: 100%;'}},{T:1,N:'xf:group',A:{style:'padding: 20px; flex: 1; background-color: #f8f9fa;',id:'grp_container'},E:[{T:1,N:'w2:textbox',A:{tagname:'h2',id:'txt_pageTitle',label:'ダッシュボード',style:'margin-top: 0; margin-bottom: 8px; color: #333;'}},{T:1,N:'w2:textbox',A:{id:'txt_welcome',label:'',style:'color: #666; margin-top: 0; margin-bottom: 20px;'}},{T:1,N:'xf:group',A:{style:'display: flex; gap: 20px; margin-bottom: 30px;',id:'grp_summaryCards'},E:[{T:1,N:'xf:group',A:{style:'border: 1px solid #ddd; border-radius: 8px; padding: 20px; background-color: #fff; width: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);',id:'grp_card1'},E:[{T:1,N:'w2:textbox',A:{label:'利用可能コート',style:'color: #555; font-size: 14px; font-weight: bold;',id:'lbl_card1Title'}},{T:1,N:'w2:textbox',A:{label:'0 件',style:'font-size: 28px; font-weight: bold; margin-top: 10px; color: #007bff;',id:'lbl_availableCourts'}}]},{T:1,N:'xf:group',A:{style:'border: 1px solid #ddd; border-radius: 8px; padding: 20px; background-color: #fff; width: 180px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);',id:'grp_card2'},E:[{T:1,N:'w2:textbox',A:{label:'あなたの予約数',style:'color: #555; font-size: 14px; font-weight: bold;',id:'lbl_card2Title'}},{T:1,N:'w2:textbox',A:{label:'0 件',style:'font-size: 28px; font-weight: bold; margin-top: 10px; color: #28a745;',id:'lbl_activeReservations'}}]}]},{T:1,N:'xf:group',A:{style:'background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);',id:'grp_calendarArea'},E:[{T:1,N:'xf:group',A:{style:'display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;',id:'grp_calendarHeader'},E:[{T:1,N:'w2:textbox',A:{tagname:'h3',id:'txt_calendarTitle',label:'■ 予約カレンダー',style:'margin: 0; color: #333;'}},{T:1,N:'xf:group',A:{id:'grp_calendarNav'},E:[{T:1,N:'xf:trigger',A:{type:'button',id:'btn_prevMonth',style:'padding: 6px 12px; margin-right: 8px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background-color: #fff;','ev:onclick':'scwin.btn_prevMonth_onclick'},E:[{T:1,N:'xf:label',E:[{T:4,cdata:'< 前月'}]}]},{T:1,N:'xf:trigger',A:{type:'button',id:'btn_nextMonth',style:'padding: 6px 12px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background-color: #fff;','ev:onclick':'scwin.btn_nextMonth_onclick'},E:[{T:1,N:'xf:label',E:[{T:4,cdata:'次月 >'}]}]}]}]},{T:1,N:'w2:textbox',A:{id:'tbx_calendarGrid',escape:'false',label:'',style:'display: grid; grid-template-columns: repeat(7, 1fr); background-color: #fff; border: 1px solid #ddd; min-height: 400px; width: 100%;'}}]},{T:1,N:'xf:group',A:{style:'background-color: #fff; padding: 10px 0;',id:'grp_gridArea'},E:[{T:1,N:'w2:textbox',A:{tagname:'h3',id:'txt_latestTitle',label:'■ 直近の予約状況一覧（最新1件）',style:'margin: 0 0 15px 0; color: #333;'}},{T:1,N:'w2:gridView',A:{id:'grd_latestReservation',dataList:'data:dlt_latestReservation',style:'width: 100%; height: 120px;',autoFit:'allColumn',visibleRowNum:'1',rowNumVisible:'false'},E:[{T:1,N:'w2:header',A:{id:'header1'},E:[{T:1,N:'w2:row',A:{id:'row1',style:'background-color: #d4edda;'},E:[{T:1,N:'w2:column',A:{id:'col_id',value:'予約ID',width:'80'}},{T:1,N:'w2:column',A:{id:'col_courtName',value:'コート名',width:'160'}},{T:1,N:'w2:column',A:{id:'col_dateTime',value:'利用日時',width:'180'}},{T:1,N:'w2:column',A:{id:'col_status',value:'ステータス',width:'100'}}]}]},{T:1,N:'w2:gBody',A:{id:'gBody1'},E:[{T:1,N:'w2:row',A:{id:'row2'},E:[{T:1,N:'w2:column',A:{id:'id',inputType:'text',readOnly:'true'}},{T:1,N:'w2:column',A:{id:'courtName',inputType:'text',readOnly:'true'}},{T:1,N:'w2:column',A:{id:'displayDateTime',inputType:'text',readOnly:'true'}},{T:1,N:'w2:column',A:{id:'displayStatus',inputType:'text',readOnly:'true'}}]}]}]}]}]}]}]}]}]}]})

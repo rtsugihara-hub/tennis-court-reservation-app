@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Split Viewer</title>
+<style>
+  html, body {
+    margin: 0;
+    width: 100% !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+  /* Direct Viewer 초기 size 측정을 위해 viewerTarget 자체에는 viewport 높이를 보장한다. */
+  #viewer-container {
+    width: 100% !important;
+    min-height: 100vh !important;
+    position: relative !important;
+  }
+  html.sv-embedded, html.sv-embedded body {
+    height: 100% !important;
+    min-height: 100% !important;
+    overflow: hidden !important;
+  }
+  html.sv-embedded #viewer-container {
+    height: 100% !important;
+    min-height: 100% !important;
+    overflow: hidden !important;
+  }
+  html.sv-no-toolbar .sv-toolbar {
+    display: none !important;
+  }
+  /* W-Sharing 컨테이너 + 미러링된 parking inner 를 투명 래퍼로 — 스크롤은 브라우저만 담당 */
+  .wsharing_outer, .wsharing_wrapper, .wsharing_container,
+  [id*="tabsplit_parking"][id$="_inner"] {
+    width: 100% !important; height: auto !important;
+    overflow: visible !important; position: static !important;
+    display: block !important; transform: none !important;
+    box-shadow: none !important; text-align: left !important;
+  }
+  .sv-toolbar {
+    position: fixed; top: 0; right: 0; z-index: 999999;
+    display: flex; align-items: center; gap: 2px;
+    padding: 6px 8px;
+  }
+  .sv-icon-btn {
+    width: 32px; height: 32px;
+    border: none; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+  }
+  .sv-icon-btn:hover {
+    background: rgba(255,255,255,0.95);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+  }
+  .sv-icon-btn:active {
+    background: rgba(240,240,240,0.95);
+    transform: scale(0.93);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+  }
+  .sv-icon-btn svg { pointer-events: none; }
+  .sv-icon-btn-return { color: #2563eb; }
+  .sv-icon-btn-close  { color: #6b7280; }
+  .sv-icon-btn-close:hover { color: #ef4444; }
+
+</style>
+</head>
+<body>
+<div class="sv-toolbar">
+  <button id="btn-attach" class="sv-icon-btn sv-icon-btn-return" title="원래 위치로 복귀">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+  </button>
+  <button id="btn-close" class="sv-icon-btn sv-icon-btn-close" title="닫기">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+<div id="viewer-container"></div>
+
+<script src="../externalJS/dom-mirror.js"></script>
+<script>
+(async function() {
+  var params = new URLSearchParams(location.search);
+  var sessionKey = params.get('sessionKey');
+  var isEmbedded = params.get('embedded') === '1';
+  var showToolbar = params.get('toolbar') !== '0';
+  var showClose = params.get('showClose') === '1';
+  if (!sessionKey) { return; }
+  var viewerTarget = document.getElementById('viewer-container');
+  var htmlEl = document.documentElement;
+  var btnCloseEl = document.getElementById('btn-close');
+  if (!showClose && btnCloseEl) {
+      // 순수 wframe.split() 시나리오: ✕(닫기) 버튼은 ↩(복귀)와 동일 동작이라 의미가 없음 → 숨김.
+      // widget/tab 처럼 onClose 콜백으로 destructive close가 정의된 경우에만 노출(showClose=1).
+      btnCloseEl.style.display = 'none';
+  }
+
+  if (isEmbedded) {
+    htmlEl.classList.add('sv-embedded');
+  }
+  if (!showToolbar) {
+    htmlEl.classList.add('sv-no-toolbar');
+  }
+
+  function notifyParent(eventName, data) {
+    if (!isEmbedded || window.parent === window) {
+      return;
+    }
+    try {
+      window.parent.postMessage({
+        __w2SplitViewer: true,
+        event: eventName,
+        sessionKey: sessionKey,
+        data: data || null
+      }, '*');
+    } catch (e) {}
+  }
+
+  if (isEmbedded) {
+    notifyParent('loaded');
+  }
+
+  function syncViewerTargetSize() {
+    if (!viewerTarget) {
+      return;
+    }
+    if (isEmbedded) {
+      viewerTarget.style.height = window.innerHeight + 'px';
+      viewerTarget.style.minHeight = window.innerHeight + 'px';
+      return;
+    }
+    viewerTarget.style.minHeight = window.innerHeight + 'px';
+  }
+
+  function stabilizeDirectLayout() {
+    if (!viewerTarget) {
+      return;
+    }
+    var minHeight = window.innerHeight + 'px';
+    var outer = viewerTarget.querySelector('.wsharing_outer');
+    var wrapper = viewerTarget.querySelector('.wsharing_wrapper');
+    var container = viewerTarget.querySelector('.wsharing_container');
+
+    if (outer && outer.offsetHeight === 0) {
+      outer.style.minHeight = minHeight;
+    }
+    if (wrapper && wrapper.offsetHeight === 0) {
+      wrapper.style.minHeight = minHeight;
+    }
+    if (container && container.offsetHeight === 0) {
+      container.style.minHeight = minHeight;
+    }
+  }
+
+  syncViewerTargetSize();
+  try {
+    var cs = wSharing.connectLocal({ serviceName: 'w2-tabsplit' });
+    var session = await wSharing.getViewerSession(cs, {
+      sessionKey: sessionKey,
+      viewerTarget: viewerTarget,
+      renderMode: 'direct',
+      shareType: 'screen',
+      offScale: true
+    });
+    notifyParent('ready');
+    session.addEventListener('destroyed', function() {
+      notifyParent('destroyed');
+    });
+    session.addEventListener('close', function() {
+      notifyParent('close');
+    });
+
+    var _closing = false;
+
+    function sendAction(action, data) {
+      var channel = new BroadcastChannel('w2-tabsplit-control-' + sessionKey);
+      channel.postMessage({ action: action, sessionKey: sessionKey, data: data });
+      channel.close();
+    }
+
+    // 초기 렌더 직후 실제 viewport 크기를 Host에 한 번 맞춘다.
+    requestAnimationFrame(stabilizeDirectLayout);
+    setTimeout(stabilizeDirectLayout, 50);
+    sendAction('resize', { width: window.innerWidth, height: window.innerHeight });
+
+    // Viewer 창 리사이즈 시 Host parking inner 크기 동기화
+    var resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        syncViewerTargetSize();
+        stabilizeDirectLayout();
+        sendAction('resize', { width: window.innerWidth, height: window.innerHeight });
+      }, 100);
+    });
+
+    // 복귀 버튼 — Host가 splitRestore에서 세션 종료 + popup 닫기를 처리
+    document.getElementById('btn-attach').onclick = function() {
+      _closing = true;
+      sendAction('attach');
+    };
+
+    // 닫기 버튼 — v1에서는 close도 restore와 동일 의미
+    document.getElementById('btn-close').onclick = function() {
+      _closing = true;
+      sendAction('close');
+      session.stopSharingSession();
+      if (!isEmbedded) {
+        window.close();
+      }
+    };
+
+    // 브라우저 X 버튼 — 닫기 버튼과 동일 (이미 처리된 경우 중복 방지)
+    window.addEventListener('beforeunload', function() {
+      if (_closing) { return; }
+      sendAction('close');
+      try { session.stopSharingSession(); } catch(e) {}
+    });
+  } catch (e) {
+    notifyParent('error', {
+      message: e && e.message ? e.message : String(e)
+    });
+    throw e;
+  }
+})();
+</script>
+</body>
+</html>

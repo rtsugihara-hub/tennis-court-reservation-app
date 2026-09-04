@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ev="http://www.w3.org/2001/xml-events"
+    xmlns:w2="http://www.inswave.com/websquare" xmlns:xf="http://www.w3.org/2002/xforms">
+    <head>
+        <w2:type>COMPONENT</w2:type>
+        <w2:buildDate/>
+        <w2:MSA/>
+        <xf:model>
+            <w2:dataCollection baseNode="map"/>
+            <w2:workflowCollection/>
+        </xf:model>
+        <w2:layoutInfo/>
+        <w2:publicInfo method=""/>
+        <script lazy="false" type="text/javascript"><![CDATA[
+            scwin.onpageload = function() {
+            };
+
+            // ダッシュボードへボタン押下
+            scwin.btn_goToDashboard_onclick = function(e) {
+                $w.url("/user/Dashboard.xml");
+            };
+
+            // 予約履歴を確認するボタン押下（マイページへ）
+            scwin.btn_goToMyPage_onclick = function(e) {
+                $w.url("/user/MyPage.xml");
+            };
+        ]]></script>
+    </head>
+    <body ev:onpageload="scwin.onpageload">
+        <!-- 画面全体のコンテナ（縦方向 Flex） -->
+        <xf:group style="display: flex; flex-direction: column; min-height: 100vh;" id="grp_wrapper">
+            
+            <!-- 1. 共通ヘッダー -->
+            <w2:wframe id="wfm_header" src="/components/Header.xml" style="width: 100%; min-height: 60px;"></w2:wframe>
+
+            <!-- 2. 下部領域（サイドバー + メインコンテンツ） -->
+            <xf:group style="display: flex; flex: 1;" id="grp_body">
+                
+                <!-- 共通サイドバー -->
+                <w2:wframe id="wfm_sidebar" src="/components/Sidebar.xml" style="width: 220px; min-height: 100%;"></w2:wframe>
+
+                <!-- メイン領域 -->
+                <xf:group style="padding: 20px; flex: 1; display: flex; flex-direction: column; align-items: center; background-color: #f8f9fa;" id="grp_container">
+                    <xf:group style="width: 100%; max-width: 600px;" id="grp_content">
+                        
+                        <!-- 画面タイトル -->
+                        <w2:textbox tagname="h2" id="txt_pageTitle" label="予約完了" style="margin-top: 0; margin-bottom: 20px; color: #333;"></w2:textbox>
+
+                        <!-- メッセージカードエリア -->
+                        <xf:group style="background-color: #fff; padding: 40px 24px; border-radius: 8px; border: 1px solid #ddd; text-align: center;" id="grp_card">
+                            
+                            <w2:textbox tagname="h3" id="txt_completeMsg" label="予約が完了いたしました！" style="margin-top: 0; color: #28a745; font-size: 22px; margin-bottom: 16px;"></w2:textbox>
+                            
+                            <w2:textbox tagname="p" id="txt_subMsg" label="ご予約ありがとうございました。マイページより予約の確認が行えます。" style="font-size: 15px; color: #555; margin-bottom: 32px;"></w2:textbox>
+
+                            <!-- ボタンエリア -->
+                            <xf:group style="display: flex; gap: 16px; justify-content: center;" id="grp_buttons">
+                                <xf:trigger type="button" id="btn_goToDashboard" style="padding: 10px 24px; background-color: #6c757d; color: #fff; font-size: 15px; border: none; border-radius: 4px; cursor: pointer;" ev:onclick="scwin.btn_goToDashboard_onclick">
+                                    <xf:label><![CDATA[ダッシュボードへ]]></xf:label>
+                                </xf:trigger>
+                                <xf:trigger type="button" id="btn_goToMyPage" style="padding: 10px 24px; background-color: #007bff; color: #fff; font-size: 15px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;" ev:onclick="scwin.btn_goToMyPage_onclick">
+                                    <xf:label><![CDATA[予約履歴を確認する]]></xf:label>
+                                </xf:trigger>
+                            </xf:group>
+
+                        </xf:group>
+
+                    </xf:group>
+                </xf:group>
+            </xf:group>
+        </xf:group>
+    </body>
+</html>

@@ -1,0 +1,870 @@
+/*amd /cm/gcc/util.xml 31339 30544fd56c52c213e668d813db95c9c44e39f695df47085f7ebc924342075c8b */
+define({declaration:{A:{version:'1.0',encoding:'UTF-8'}},E:[{T:1,N:'html',A:{xmlns:'http://www.w3.org/1999/xhtml','xmlns:ev':'http://www.w3.org/2001/xml-events','xmlns:w2':'http://www.inswave.com/websquare','xmlns:xf':'http://www.w3.org/2002/xforms'},E:[{T:1,N:'head',A:{},E:[{T:1,N:'w2:type',E:[{T:3,text:'COMMON'}]},{T:1,N:'w2:buildDate'},{T:1,N:'w2:MSA'},{T:1,N:'xf:model',E:[{T:1,N:'w2:dataCollection',A:{baseNode:'map'}},{T:1,N:'w2:workflowCollection'}]},{T:1,N:'w2:layoutInfo'},{T:1,N:'w2:publicInfo',A:{method:'scwin.getUserAgent,scwin.getParameter,scwin.getObject,scwin.getFunction,scwin.getCallBackFunction,scwin.getJSON,scwin.isJSON,scwin.isArray,scwin.isEmpty,scwin.getObjectType,scwin.isPlainObject,scwin.isMobile,scwin.isXmlDoc,scwin.setGridViewDelCheckBox,scwin.getChildren,scwin.getGridViewDataList,scwin.getComponent,scwin.createComponent,scwin.setInterval,scwin.clearInterval,scwin.setTimeout,scwin.clearTimeout,scwin.copyClipboard'}},{T:1,N:'script',A:{lazy:'false',type:'text/javascript'},E:[{T:4,cdata:function(scopeObj){with(scopeObj){/**
+ * @component
+ * @componentName udc_util
+ * @pluginName
+ * @company
+ * @developer
+ * @category /cm/gcc
+ * @notSupportBrowser
+ * @version
+ * @htmlRender
+ * @icon
+ * @disableIcon
+ * @description
+ * @width
+ * @height
+ * @license
+ * @imagePath
+ * @homepage
+ */
+// =============================================================================
+/**
+* WebSquareコンポーネントの制御、Excelファイルのアップロード/ダウンロード、ファイルのアップロード/ダウンロード、その他のユーティリティ関数を作成する。
+ *
+ * @author Inswave Systems
+ * @class util
+ * @namespace $c.util
+ */
+// =============================================================================
+
+scwin.onpageload = function ($p) {};
+
+/**
+ * @method 
+ * @name getUserAgent
+* @description 接続したユーザーのウェブブラウザの種類を返す。
+* @returns {String} Webブラウザの種類
+ * @hidden N
+ * @exception 
+ * @example
+const userAgent = $c.util.getUserAgent();
+ */
+scwin.getUserAgent = function ($p) {
+  return scwin.__getUserAgent();
+};
+
+/**
+ * @method
+ * @name __getUserAgent
+* @description 接続したユーザーのウェブブラウザ情報を返します
+ * @param
+* @returns {string} ユーザーのウェブブラウザ情報
+ * @hidden Y
+ * @exception
+ * @example
+ */
+scwin.__getUserAgent = function () {
+  try {
+    const agt = navigator.userAgent.toLowerCase();
+    if (agt.indexOf("edg") != -1) {
+      return 'Edge';
+    } else if (agt.indexOf("chrome") != -1) {
+      return 'Chrome';
+    } else if (agt.indexOf("opera") != -1) {
+      return 'Opera';
+    } else if (agt.indexOf("staroffice") != -1) {
+      return 'Star Office';
+    } else if (agt.indexOf("webtv") != -1) {
+      return 'WebTV';
+    } else if (agt.indexOf("beonex") != -1) {
+      return 'Beonex';
+    } else if (agt.indexOf("chimera") != -1) {
+      return 'Chimera';
+    } else if (agt.indexOf("netpositive") != -1) {
+      return 'NetPositive';
+    } else if (agt.indexOf("phoenix") != -1) {
+      return 'Phoenix';
+    } else if (agt.indexOf("firefox") != -1) {
+      return 'Firefox';
+    } else if (agt.indexOf("safari") != -1) {
+      return 'Safari';
+    } else if (agt.indexOf("skipstone") != -1) {
+      return 'SkipStone';
+    } else if (agt.indexOf("msie") != -1 || agt.indexOf("trident") != -1) {
+      return 'msie';
+    } else if (agt.indexOf("netscape") != -1) {
+      return 'Netscape';
+    } else if (agt.indexOf("mozilla/5.0") != -1) {
+      return 'Mozilla';
+    } else {
+      return '';
+    }
+  } catch (ex) {
+    return '';
+  }
+};
+
+/**
+ * @method 
+ * @name getParameter
+* @description GETメソッドで渡されたパラメータを読み取ります。
+* @param {String} param パラメータキー
+ * @param {String} url URL
+* @returns {Object} パラメータ値
+ * @hidden N
+ * @exception 
+ * @example
+const codeValue = $c.util.getParameter("code");  // 特定のパラメータ値を取得する
+ */
+scwin.getParameter = function ($p, param, url) {
+  if ($c.util.isEmpty($p, url)) {
+    url = unescape(location.href);
+  }
+  const paramArr = url.substring(url.indexOf("?") + 1, url.length).split("&");
+  let value = "";
+  for (let i = 0; i < paramArr.length; i++) {
+    let temp = paramArr[i].split("=");
+    if (temp[0].toUpperCase() == param.toUpperCase()) {
+      value = paramArr[i].split("=")[1];
+      break;
+    }
+  }
+  return value;
+};
+
+/**
+ * @method 
+ * @name getObject
+* @description オブジェクトIDでオブジェクトを検索して返却する。
+* @param {String} _objectId オブジェクトID
+* @param {String} _scopeObj オブジェクト適用Scope ID ["parent" 最上位例外scope ID適用]
+* @returns {Object} 見つかったオブジェクト
+ * @hidden N
+ * @exception 
+ * @example
+const scwinObj = $c.util.getObject("scwin");
+const wfmHeader = $c.util.getObject("wfm_header", "top");
+const wfmHeader = $c.util.getObject("wfm_header", "parent");
+const btnToggleMenu = $c.util.getObject("btn_toggle_menu", "wfm_header");
+const thisObj = $c.util.getObject(this);
+ */
+scwin.getObject = function ($p, _objectId, _scopeObj) {
+  if (typeof _objectId === "object" && !$c.util.isEmpty($p, _objectId.event)) {
+    return $c.util.getComponent($p, $p.getEventTarget(_objectId.realId));
+  } else {
+    let scopeObj = _scopeObj || "";
+    const topFrameId = $p.main().$p.getFrameId();
+    if (scopeObj == "parent") {
+      scopeObj = $p.parent().$p;
+    } else if (scopeObj == "top") {
+      scopeObj = $p.main().$p;
+    } else if (scopeObj == "") {
+      scopeObj = $p;
+    } else {
+      // var isComp = WebSquare.util.getComponentById(topFrameId + "_" + scopeObj);
+      let isComp = $p.getFrame();
+      if (isComp) {
+        scopeObj = isComp.getWindow().$p;
+      }
+    }
+    const objectId = _objectId || "";
+    let objectComp;
+    try {
+      if (objectId != "" && scopeObj && scopeObj.id && scopeObj.id.indexOf(topFrameId) == 0) {
+        objectComp = scopeObj.getComponentById(objectId);
+      } else if (objectId != "" && objectId.indexOf(topFrameId) == 0) {
+        objectComp = WebSquare.util.getComponentById(objectId);
+      }
+      if ($c.util.isEmpty($p, objectComp)) {
+        objectComp = window[scopeObj.id + objectId];
+      }
+    } catch (ex) {
+      console.error(ex);
+    }
+    return objectComp;
+  }
+};
+
+/**
+ * @method 
+ * @name getFunction
+* @description 関数名を通じて関数オブジェクトを探して返します。
+* @param {String} _funcStr 関数名
+* @param {String} _scopeId 関数が存在するscopeId [default: 現在呼び出されているscopeId (ページ)]
+* @returns {Function} 特定の関数名の関数オブジェクト
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.getFunction("scwin.btn_logout_onclick");
+$c.util.getFunction("scwin.initMainLoad", "top");
+$c.util.getFunction("scwin.initMainLoad", "parent");
+$c.util.getFunction("scwin.toggleMenu", "wfm_header");
+ */
+scwin.getFunction = function ($p, _funcStr, _scopeId) {
+  try {
+    let fun;
+    if (typeof _funcStr == "undefined") {
+      return;
+    } else {
+      if (typeof _funcStr == "string") {
+        const funcArr = _funcStr.split(".");
+        const funcCnt = funcArr.length;
+        let frameWin;
+        if (!$c.util.isEmpty($p, _scopeId)) {
+          if (_scopeId == "top") {
+            frameWin = $p.main();
+          } else if (_scopeId == "parent") {
+            frameWin = $p.parent();
+          } else {
+            let findObj = $c.util.getObject($p, _scopeId, "top");
+            if (findObj && typeof findObj.getWindow == "function") {
+              frameWin = findObj.getWindow();
+            } else {
+              return;
+            }
+          }
+        } else {
+          frameWin = $p.getFrame().getWindow();
+        }
+        let targetObj = frameWin;
+        while (funcCnt > 0) {
+          let funcStr = funcArr[funcArr.length - funcCnt];
+          let findFunc = targetObj[funcStr];
+          if (typeof findFunc == "undefined") {
+            break;
+          } else {
+            fun = findFunc;
+            targetObj = fun;
+            funcCnt--;
+          }
+        }
+        if (typeof fun == "function") {
+          return fun;
+        }
+      } else if (typeof _funcStr == "function") {
+        return _funcStr;
+      }
+    }
+  } catch (ex) {
+    console.error(ex);
+  }
+};
+
+/**
+ * @method 
+ * @name getCallBackFunction
+* @description コールバック関数名を通じて関数オブジェクトを探して返す。
+* @param {String} callbackFnStr 関数名
+* @returns {Function} 特定の関数名の関数オブジェクト
+ * @hidden N
+ * @exception 
+ * @example
+ */
+scwin.getCallBackFunction = function ($p, callbackFnStr) {
+  if (!$c.util.isEmpty($p, callbackFnStr)) {
+    let func;
+    const funcManager = $c.win.getCbFunctionManager($p);
+    if (callbackFnStr.indexOf("__close_callback_Func__") > -1) {
+      func = funcManager["cbFuncSave"][callbackFnStr];
+      delete funcManager["cbFuncSave"][callbackFnStr];
+      return func;
+    } else {
+      func = window.WebSquare.util.getGlobalFunction(callbackFnStr);
+      return func;
+    }
+  }
+};
+
+/**
+ * @method 
+ * @name getJSON
+* @description JSONオブジェクトに変換して返却します。
+* @param {String|XML} value JSONの文字列またはXML Document
+* @returns {Object} JSONオブジェクト
+ * @hidden N
+ * @exception 
+ * @example
+// 有効でないJSON文字列の場合
+$c.util.getJSON("");
+// return 例)	null
+
+// 有効なJSON文字列
+const json = '{"tbx_sPrjNm":"1","tbx_sPrtLv":"2","tbx_sReqLv":"3"}';
+$c.util.getJSON(json);
+// return 例)	{tbx_sPrjNm: "1", tbx_sPrtLv: "2", tbx_sReqLv: "3"}
+ */
+scwin.getJSON = function ($p, value) {
+  try {
+    if ($c.util.isXmlDoc($p, value) === true) {
+      return JSON.parse(WebSquare.json.XML2JSONString(value));
+    } else {
+      return JSON.parse(value);
+    }
+  } catch (ex) {
+    return value;
+  }
+};
+
+/**
+ * @method 
+ * @name isJSON
+* @description JSONオブジェクトであるかどうかを検査します。
+* @param {Object} jsonObj 検証対象のJSONオブジェクト
+* @returns {Boolean} 検査結果
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.isJSON("123");
+// return 例) false
+$c.util.isJSON([1,2,3]);
+// return 例) false
+$c.util.isJSON([{"name" : "aaa"}, {"name" : "bbb"}]);
+// return 例) true
+$c.util.isJSON( {"tbx_sPrjNm": "1", "tbx_sPrtLv": "2", "tbx_sReqLv": "3"} );
+// return 例) true
+ */
+scwin.isJSON = function ($p, json) {
+  try {
+    if (typeof json === "object") {
+      try {
+        if ($c.util.isArray($p, json)) {
+          if ($c.util.isPlainObject($p, json[0])) {
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          if ($c.util.isPlainObject($p, json)) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      } catch (ex) {
+        return false;
+      }
+    } else if (typeof json === "string" && $c.util.isPlainObject($p, json)) {
+      try {
+        const jsonObj = JSON.parse(json);
+        if ($c.util.isArray($p, jsonObj)) {
+          if ($c.util.isPlainObject($p, jsonObj[0])) {
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          return true;
+        }
+      } catch (ex) {
+        console.error(ex);
+        return false;
+      }
+    }
+    return false;
+  } catch (ex) {
+    console.error(ex);
+    return false;
+  }
+};
+
+/**
+ * @method 
+ * @name isArray
+* @description 配列オブジェクトであるかどうかを確認する。
+ * @param {Object}  array :: I :: N :: :: Array Object or String
+* @returns {Boolean} 配列かどうかの判定結果（Array オブジェクトの場合は true、そうでない場合は false）
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.isArray(arrObject); // return true
+ */
+scwin.isArray = function ($p, array) {
+  try {
+    if (typeof array !== "undefined" && array !== null && typeof array == "object") {
+      if (array.constructor.name && array.constructor.name.toLowerCase() == "array") return true;
+      if (array.constructor && array.constructor == Array) return true;
+    }
+    return false;
+  } catch (ex) {
+    console.error(ex);
+    return false;
+  }
+};
+
+/**
+ * @method 
+ * @name isEmpty
+* @descriptionの値が空の状態（undefined、null、""）であるかを判別します。
+* @param {Object} value Emptyかどうかを判断する値
+* @returns {Boolean} 空かどうか (true: 空、false: 空でない)
+ * @hidden N
+ * @exception 
+ * @example
+if ($c.util.isEmpty(empCd) === false) {
+    console.log("empCd : " + empCd);
+}
+ */
+scwin.isEmpty = function ($p, value) {
+  if (typeof value === "undefined" || value === null || value === "") {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+/**
+ * @method 
+ * @name getObjectType
+* @description オブジェクトのtypeofの値を返し、typeofの値がobjectの場合はarray、json、xml、nullをチェックして返します。
+* @param {Object} obj 型を返すオブジェクト(string、boolean、number、objectなど)
+* @returns {String} オブジェクトの型を返します。typeofがobjectの場合、array、json、xml、nullに細分化して返します。objectタイプでない場合は、元のタイプ（string、boolean、numberなど）を返します。
+ * @hidden N
+ * @exception 
+ * @example
+ $c.util.getObjectType("WebSquare");
+// return 例) "string"
+
+ $c.util.getObjectType({"name":"WebSquare"});
+// return 例) "json"
+
+ $c.util.getObjectType(["1","2"]);
+// return 例) "array"
+ */
+scwin.getObjectType = function ($p, obj) {
+  const objType = typeof obj;
+  if (objType !== "object") {
+    return objType;
+  } else if ($c.util.isArray($p, obj)) {
+    return "array";
+  } else if ($c.util.isJSON($p, obj)) {
+    return "json";
+  } else if (objType === "object" && $c.util.isJSON($p, obj) === false) {
+    return "object";
+  } else if (obj === null) {
+    return "null";
+  } else {
+    const tmpDoc = WebSquare.xml.parse("<data></data>");
+    if (obj.constructor === tmpDoc.constructor || obj.constructor === tmpDoc.childNodes[0].constructor) {
+      return "xml";
+    } else {
+      return objType;
+    }
+  }
+};
+
+/**
+ * @method 
+ * @name isPlainObject
+* @description 値がPlain Objectであるかを検査します。
+* @param {Object} obj プレーンオブジェクトかどうかを検査する値
+* @returns {Boolean} Plainオブジェクトかどうか
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.isPlainObject(1); // false
+$c.util.isPlainObject("name"); // false
+$c.util.isPlainObject([1,2,3]); // false
+$c.util.isPlainObject({}); // true
+$c.util.isPlainObject({ "name" : "aaa"}); // true
+$c.util.isPlainObject([{ "name" : "bbb"}]); // false
+ */
+scwin.isPlainObject = function ($p, obj) {
+  let consObj, protObj;
+  if (Object.prototype.toString.call(obj) !== '[object Object]') return false;
+  consObj = obj.constructor;
+  if (consObj === undefined) return true;
+  protObj = consObj.prototype;
+  if (Object.prototype.toString.call(protObj) !== '[object Object]') return false;
+  if (protObj.hasOwnProperty('isPrototypeOf') === false) {
+    return false;
+  }
+  return true;
+};
+
+/**
+ * @method 
+ * @name isMobile
+* @description 現在のクライアントブラウザ環境がモバイルかどうかを返します。
+ * @hidden N
+ * @exception 
+ * @example
+ */
+scwin.isMobile = function ($p) {
+  return WebSquare.util.isMobile();
+};
+
+/**
+ * @method 
+ * @name isXmlDoc
+* @description XMLドキュメントオブジェクトであるかどうかを検査します。
+* @param {Object} data XMLドキュメントオブジェクトかどうかを検査します。
+* @returns {Boolean} 検査結果
+ * @hidden N
+ * @exception 
+ * @example
+ */
+scwin.isXmlDoc = function ($p, data) {
+  if (typeof data != 'object') return false;
+  if (typeof data.documentElement != 'undefined' && data.nodeType == 9 || typeof data.documentElement == 'undefined' && data.nodeType == 1) {
+    return true;
+  }
+  return false;
+};
+
+/**
+ * @method 
+ * @name setGridViewDelCheckBox
+ * @description 
+* GridViewの行削除用のCheckBoxの動作を設定します。
+* GridViewに削除用のCheckBoxがある場合、onPageLoadイベントで$c.util.setGridViewDelCheckBox関数を呼び出します。
+* この関数が正常に動作するためには、GridViewのDelete処理用CheckBoxのColumnIdとHeader Idを"chk"に設定する必要があります。
+ * 
+* @param {Array} gridViewObj GridViewオブジェクトの配列
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.setGridViewDelCheckBox(grd_OrganizationBasic);
+$c.util.setGridViewDelCheckBox([grd_Menu, grd_MenuAccess]);
+ */
+scwin.setGridViewDelCheckBox = function ($p, gridViewObjArr) {
+  try {
+    if ($c.util.getObjectType($p, gridViewObjArr) === "array") {
+      for (let idx in gridViewObjArr) {
+        setGridViewDelCheckBox(gridViewObjArr[idx]);
+      }
+    } else {
+      setGridViewDelCheckBox(gridViewObjArr);
+    }
+    function setGridViewDelCheckBox(gridViewObj) {
+      gridViewObj.bind("oncellclick", function (row, col) {
+        const columnId = gridViewObj.getColumnID(col);
+        if (columnId == "chk") {
+          const dltObj = $c.util.getGridViewDataList($p, this);
+          let realRowIndex = this.getRealRowIndex(row);
+          if (dltObj.getFilterList().length > 0) {
+            realRowIndex = dltObj.getFilteredRowIndex(realRowIndex);
+          }
+          const newValue = dltObj.getCellData(realRowIndex, columnId);
+          scwin._setGridViewRowCheckBox($p, this, realRowIndex, newValue === "1" ? true : false);
+        }
+      });
+      gridViewObj.bind("onheaderclick", function (headerId) {
+        if (headerId == "chk") {
+          const newValue = this.getHeaderValue(headerId);
+          const dltObj = $c.util.getGridViewDataList($p, this);
+          const rowCount = dltObj.getRowCount();
+          let removeIdx = [];
+          let deleteIdx = [];
+          let undoIdx = [];
+          for (let i = 0; i < rowCount; i++) {
+            let realRowIndex = dltObj.getRealRowIndex(i);
+            if (dltObj.getFilterList().length > 0) {
+              realRowIndex = dltObj.getFilteredRowIndex(realRowIndex);
+            }
+            if (dltObj.getRowStatus(realRowIndex) == "C") {
+              removeIdx.push(realRowIndex);
+              continue;
+            }
+            if (newValue) {
+              deleteIdx.push(realRowIndex);
+            } else {
+              undoIdx.push(realRowIndex);
+            }
+          }
+          if (newValue) {
+            dltObj.deleteRows(deleteIdx);
+            dltObj.removeRows(removeIdx);
+          } else {
+            dltObj.undeleteRows(undoIdx);
+          }
+        }
+      });
+    }
+  } catch (ex) {
+    console.error(ex);
+  }
+};
+
+/**
+ * @method 
+ * @name _setGridViewRowCheckBox
+ * @description 
+* @param {Object} gridViewObj グリッドビューオブジェクト
+* @param {Number} rowIndex rowIndexの値
+* @param {String} newValue セットする値。
+ * @hidden Y
+ * @exception 
+ * @example
+ */
+scwin._setGridViewRowCheckBox = function ($p, gridViewObj, rowIndex, newValue) {
+  const rowIndexArr = gridViewObj.getChildrenRowIndexArray(rowIndex);
+  const dltObj = $c.util.getGridViewDataList($p, gridViewObj);
+  for (let idx in rowIndexArr) {
+    let childRowIndexArr = gridViewObj.getChildrenRowIndexArray(rowIndexArr[idx]);
+    if (childRowIndexArr.length > 0) {
+      scwin._setGridViewRowCheckBox($p, gridViewObj, rowIndexArr[idx], newValue);
+    } else {
+      scwin._deleteGridViewRow($p, gridViewObj, rowIndexArr[idx], newValue);
+    }
+  }
+  scwin._deleteGridViewRow($p, gridViewObj, rowIndex, newValue);
+};
+
+/**
+ * @method 
+ * @name _deleteGridViewRow
+ * @description 
+* @param {Object} gridViewObj グリッドビューオブジェクト
+* @param {Number} rowIndex rowIndexの値
+ * @param {String} newValue 
+ * @hidden Y
+ * @exception 
+ * @example
+ */
+scwin._deleteGridViewRow = function ($p, gridViewObj, rowIndex, newValue) {
+  gridViewObj.setCellChecked(rowIndex, "chk", newValue);
+  let dltObj = $c.util.getGridViewDataList($p, gridViewObj);
+  if (newValue) {
+    let rowStatus = dltObj.getRowStatus(rowIndex);
+    if (rowStatus == "C") {
+      dltObj.deleteRow(rowIndex);
+      dltObj.removeRow(rowIndex);
+    } else {
+      dltObj.deleteRow(rowIndex);
+    }
+  } else {
+    dltObj.undeleteRow(rowIndex);
+  }
+};
+
+/**
+ * @method 
+ * @name getChildren
+* @description 特定のコンポーネントの子コンポーネントを配列で返します。
+* @param {Object} comObj コンポーネントオブジェクト
+* @param {Object} options サブコンポーネント検索オプション情報
+* @param {String} options.excludeId 除外するコンポーネントのid。引数が複数ある場合は空白を区切り文字として使用
+* @param {String} options.excludePlugin 除外するコンポーネントプラグインの名前。引数が複数ある場合は空白を区切り文字として使用。
+* @param {String} options.includePlugin 含めるコンポーネントプラグインの名前。引数が複数ある場合は空白を区切り文字として使用。
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.getChildren(grp_content);
+$c.util.getChildren(grp_content, {excludePlugin : "trigger input", excludeId : "treeview1_tooltip windowContainer1_tooltip");
+$c.util.getChildren(grp_content, {excludeId : "ibx_name sbx_payTy"});
+$c.util.getChildren(grp_content, {includePlugin : "selectbox"});
+$c.util.getChildren(grp_content, {excludeId : "ibx_name sbx_payTy", includePlugin : "input selectbox"});
+ */
+scwin.getChildren = function ($p, comObj, options) {
+  return WebSquare.util.getChildren(comObj, options);
+};
+
+/**
+ * @method 
+ * @name getGridViewDataList
+* @description GridViewとバインドされたDataListオブジェクトを返します。
+* @param {Object} gridViewObj バインドされたDataListが存在するかを検証するGridViewオブジェクト
+* @returns {Object} DataListオブジェクトにバインドされたDataListオブジェクトを返却（バインドされたオブジェクトがない場合はnullを返却）
+ * @hidden N
+ * @exception 
+ * @example
+// バインドされている場合
+$c.util.getGridViewDataList(grd_First);
+// return 例) "dlt_first"
+
+// バインドされていない場合
+$c.util.getGridViewDataList(grd_First);
+// return 例) undefined
+ */
+scwin.getGridViewDataList = function ($p, gridViewObj) {
+  const dataListId = gridViewObj.getDataList();
+  if (dataListId !== "") {
+    let dataList = $p.getComponentById(dataListId);
+    if (typeof dataList === "undefined" || dataList === null) {
+      console.warn("[$c.util.getGridViewDataList] DataList(" + dataListId + ")が見つかりません。");
+      return null;
+    } else {
+      return dataList;
+    }
+  } else {
+    console.warn("[$c.util.getGridViewDataList] " + gridViewObj.getID() + "にはDataListが設定されていません。");
+    return null;
+  }
+};
+
+/**
+ * @method 
+ * @name getComponent
+* @description 指定されたIDに該当するWebSquareコンポーネントを検索して返します。
+* @param {String} compId コンポーネントID
+* @returns {Object} DataListオブジェクトにバインドされたDataListオブジェクトを返却（バインドされたオブジェクトがない場合はnullを返却）
+ * @hidden N
+ * @exception 
+ * @example
+const object = $c.util.getComponent(compId);
+ */
+scwin.getComponent = function ($p, compId) {
+  const object = $p.getComponentById(compId);
+  if (typeof object === "undefined") {
+    return null;
+  } else {
+    return object;
+  }
+};
+
+/**
+ * @method 
+ * @name createComponent
+* @description 与えられた引数を通じて動的にComponentを生成します。
+* @param {String} strCompId コンポーネントID
+* @param {String} strCompName コンポーネントのタグ名
+* @param {Object} option コンポーネントオプション
+* @param {String} parent コンポーネント生成の親ノード位置
+* @param {Object} itemSet コンポーネントのsetItemsetオプション
+* @returns {Object} 生成されたコンポーネントオブジェクト
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.createComponent("ibx_input1", "input" );
+$c.util.createComponent("ibx_input2", "input", { style: "width:120px; height:40px; float:left; margin : 20px;" });
+$c.util.createComponent("ibx_input2", "input", { style: "width:120px; height:40px; float:left; margin : 20px;" }, grp_content1);
+ */
+scwin.createComponent = function ($p, strCompId, strCompName, option, parent, itemSet) {
+  try {
+    if (typeof strCompId !== "undefined" && strCompId !== "" && typeof strCompName !== "undefined" && strCompName !== "") {
+      if (typeof option == "undefined") {
+        option = {};
+      }
+      if (typeof parent == "undefined") {
+        parent = "";
+      }
+      if (typeof itemSet == "undefined") {
+        itemSet = "";
+      }
+      return $p.dynamicCreate(strCompId, strCompName, option, parent, itemSet);
+    }
+  } catch (ex) {
+    console.error(ex);
+    return null;
+  }
+};
+
+/**
+ * @method 
+ * @name setInterval
+* @description 指定されたユーザー関数が定期的に実行されます。
+* @param {Function} func	実行する関数
+* @param {Object} options	optionsパラメータには以下のパラメータが使用されます。
+* @param {String} options.key timerを区別するためのキー値。この値が指定されていない場合、キー値としてfunc.toString().slice(0,30)を使用します。
+* @param {Number} options.delay setIntervalの2番目の引数値。func関数がdelay時間後に実行されるようにする。デフォルト値は1である。
+* @param {Object} options.caller 関数内でthisの値をcallerに変更します。
+* @param {Object} options.args funcに渡す引数の値。配列形式で引数を渡す。
+* @param {Function} options.before_call : func関数が実行される直前に実行される関数。func関数と同様にdataを引数として受け取る。
+* @param {Function} options.callback : func関数が実行された後に実行する関数。func関数のreturn値を引数として受け取る
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.setInterval(
+    function($p, ) {
+$c.win.alert("処理が完了しました");
+    },
+    { caller : grd_data1, delay : 2000, key : "interval1" }
+);
+ */
+scwin.setInterval = function ($p, func, options) {
+  $p.setInterval(func, options);
+};
+
+/**
+ * @method 
+ * @name clearInterval
+ * @description 
+* $c.util.setIntervalで登録した関数を直接クリアする。
+* 実行する関数をsetIntervalで登録し、関数が周期的に継続して実行されるようにします。SPAモードでページ移動時に関数として登録したタイマーを自動的に削除します。
+ * 
+* @param {String} keyName	keyとして指定した値。（$c.util.setInterval APIを呼び出す際にoptionsに登録したkey名）
+* @param {Boolean} force	keyNameで指定されたInterval オブジェクトを解除する前に、該当関数を一度実行するかどうかを指定します。デフォルト値はfalseです。
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.setInterval(
+    function($p, ) {
+$c.win.alert("処理が完了しました");
+    },
+    { caller : grd_data1, delay : 2000, key : "interval1" }
+);
+ */
+scwin.clearInterval = function ($p, func, options) {
+  $p.clearInterval(func, options);
+};
+
+/**
+ * @method 
+ * @name setTimeout
+ * @description 
+* ユーザーが指定した関数が一定時間後に実行されます。
+* 実行する関数をsetIntervalで登録し、関数が周期的に継続して実行されるようにする。SPAモードでページ移動時に、この関数で登録したタイマーを自動的に削除する。
+ * 
+* @param {Function} func	実行する関数
+* @param {Object} options	optionsパラメータには以下のパラメータが使用されます。
+* @param {String} options.key タイムアウトを区別するためのキー値。この値が指定されていない場合、キー値としてfunc.toString().slice(0,30)を使用します。
+* @param {Number} options.delay funcで指定した関数が実行される間隔で、デフォルト値は1ms(millisecond / 1000分の1秒)です。javascript setTimeoutの2番目の引数値。
+* @param {Object} options.caller funcで指定した関数内でthis値として指定するオブジェクト（WebSquareコンポーネントを含む）。
+* @param {Object} options.args funcに渡す引数の値。配列形式で引数を渡す。
+* @param {Function} options.before_call : funcで指定した関数が実行される直前に実行する関数。func関数と同様にdataを引数として受け取る。
+* @param {Function} options.callback : funcで指定した関数が実行された後に実行する関数。funcで指定した関数のreturn値を引数として受け取る。
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.setTimeout(
+    function($p, ) {
+$c.win.alert("5分が経過しました。");
+    },
+    { delay : 300000, key : "loginTimeout" }
+);
+ */
+scwin.setTimeout = function ($p, func, options) {
+  $p.setTimeout(func, options);
+};
+
+/**
+ * @method 
+ * @name clearTimeout
+ * @description 
+* $c.util.setTimerAPIを使用して登録した関数を直接クリアする。
+* 実行する関数をsetIntervalで登録し、関数が周期的に継続して実行されるようにします。SPAモードでページ移動時に、この関数で登録したタイマーを自動的に削除します。
+* @param {String} keyName	keyとして指定した値。（$c.util.setTimeout APIを呼び出す際にoptionsに登録したkey名）
+* @param {Boolean} force	keyNameで指定されたInterval オブジェクトを解除する前に、該当関数を一度実行するかどうかを指定します。デフォルト値はfalseです。
+ * @hidden N
+ * @exception 
+ * @example
+$c.util.clearTimeout("timer1");
+ */
+scwin.clearTimeout = function ($p, func, options) {
+  $p.clearTimeout(func, options);
+};
+
+/**
+ * @method 
+ * @name copyClipboard
+ * @description 
+* 入力可能なコンポーネント（input、textareaなど）オブジェクトの内容をクリップボードに保存します。
+※ 注意事項
+- IE 10以降、Chrome 43以降、Opera 29以降、Firefoxでのみ使用可能
+- IEの場合、クリップボードへのコピーを許可するかどうかを確認するダイアログが表示されます
+* @param {Object} コンポーネント コンポーネントオブジェクト
+ * @hidden N
+ * @exception 
+ * @example
+// InputBox内のテキストが選択されながらClipboardにコピーされます。
+$c.util.copyClipboard(ibx_message);
+ */
+scwin.copyClipboard = async function ($p, comObj) {
+  if (typeof comObj !== "undefined") {
+    comObj.focus();
+    comObj.select();
+  }
+  if ($c.util.getUserAgent($p) === "msie") {
+    document.execCommand("Copy");
+  } else {
+    const comVal = comObj.getValue();
+    try {
+      await navigator.clipboard.writeText(comVal);
+      $c.win.alert($p, "正常にコピーされました。");
+    } catch (err) {
+      console.error('クリップボードへのコピー中にエラーが発生しました:', err);
+    }
+  }
+};
+}}}]}]},{T:1,N:'body',A:{'ev:onpageload':'scwin.onpageload'}}]}]})

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ev="http://www.w3.org/2001/xml-events"
+    xmlns:w2="http://www.inswave.com/websquare" xmlns:xf="http://www.w3.org/2002/xforms">
+    <head>
+        <w2:type>COMPONENT</w2:type>
+        <w2:buildDate/>
+        <w2:MSA/>
+        <xf:model>
+            <w2:dataCollection baseNode="map">
+                <!-- コート詳細情報格納用 DataMap -->
+                <w2:dataMap baseNode="map" id="dma_courtDetail">
+                    <w2:keyInfo>
+                        <w2:key id="id" name="コートID" dataType="text"></w2:key>
+                        <w2:key id="name" name="コート名" dataType="text"></w2:key>
+                        <w2:key id="type" name="コート種別" dataType="text"></w2:key>
+                        <w2:key id="isIndoor" name="屋内外区分" dataType="text"></w2:key>
+                        <w2:key id="date" name="利用日" dataType="text"></w2:key>
+                        <w2:key id="timeSlot" name="利用時間帯" dataType="text"></w2:key>
+                        <w2:key id="pricePerHour" name="利用料金" dataType="number"></w2:key>
+                        <w2:key id="description" name="概要・説明" dataType="text"></w2:key>
+                        <w2:key id="status" name="公開ステータス" dataType="text"></w2:key>
+                        <w2:key id="displayIndoor" name="表示用屋内外" dataType="text"></w2:key>
+                        <w2:key id="displayDateTime" name="表示利用日時" dataType="text"></w2:key>
+                        <w2:key id="displayPrice" name="表示利用料金" dataType="text"></w2:key>
+                    </w2:keyInfo>
+                </w2:dataMap>
+            </w2:dataCollection>
+            <w2:workflowCollection/>
+
+            <!-- コート詳細取得 Submission -->
+            <xf:submission id="sbm_getCourtDetail" ref="" target="data:json,dma_courtDetail"
+                action="http://localhost:8081/api/courts/" method="get" mediatype="application/json"
+                encoding="UTF-8" mode="asynchronous" processMsg="読み込み中..."
+                ev:submitdone="scwin.sbm_getCourtDetail_submitdone" ev:submiterror="scwin.sbm_getCourtDetail_submiterror">
+            </xf:submission>
+        </xf:model>
+        <w2:layoutInfo/>
+        <w2:publicInfo method=""/>
+        <script lazy="false" type="text/javascript"><![CDATA[
+            scwin.courtId = null;
+
+            scwin.onpageload = function() {
+                // 渡されたパラメータ（オブジェクトパラメータ or URLクエリ文字列の双方に対応）
+                var param = $w.getParameter("param");
+                var directCourtId = $w.getParameter("courtId");
+
+                if (param && param.courtId) {
+                    scwin.courtId = param.courtId;
+                } else if (directCourtId) {
+                    scwin.courtId = directCourtId;
+                }
+
+                if (scwin.courtId) {
+                    var sbmObj = $w.getSubmission("sbm_getCourtDetail");
+                    if (sbmObj) {
+                        sbmObj.action = "http://localhost:8081/api/courts/" + scwin.courtId;
+                    } else if (typeof sbm_getCourtDetail !== "undefined") {
+                        sbm_getCourtDetail.action = "http://localhost:8081/api/courts/" + scwin.courtId;
+                    }
+                    $w.executeSubmission("sbm_getCourtDetail");
+                } else {
+                    alert("コートIDが見つかりません。一覧画面からやり直してください。");
+                }
+            };
+
+            // コート詳細取得完了時の加工処理
+            scwin.sbm_getCourtDetail_submitdone = function(e) {
+                var court = e.responseJSON || dma_courtDetail.getJSON();
+
+                if (court && court.id) {
+                    dma_courtDetail.setJSON(court);
+
+                    // 屋内外テキスト
+                    var isIndoor = (court.isIndoor === true || court.isIndoor === "true" || court.isIndoor === 1);
+                    dma_courtDetail.set("displayIndoor", isIndoor ? "屋内" : "屋外");
+
+                    // 利用日時テキスト
+                    dma_courtDetail.set("displayDateTime", (court.date || "") + " " + (court.timeSlot || ""));
+
+                    // 利用料金テキスト（¥表記・カンマ区切り）
+                    var priceNum = Number(court.pricePerHour) || 0;
+                    dma_courtDetail.set("displayPrice", "¥" + priceNum.toLocaleString());
+
+                    // ステータスに応じた「予約手続きへ」ボタンの有効/無効制御
+                    var status = (court.status || "").toString().toLowerCase();
+                    if (status === "available" || status === "公開中") {
+                        btn_goToConfirm.setValue("予約手続きへ");
+                        btn_goToConfirm.setDisabled(false);
+                        btn_goToConfirm.setStyle("background-color", "#28a745");
+                        btn_goToConfirm.setStyle("cursor", "pointer");
+                    } else {
+                        btn_goToConfirm.setValue("予約不可");
+                        btn_goToConfirm.setDisabled(true);
+                        btn_goToConfirm.setStyle("background-color", "#6c757d");
+                        btn_goToConfirm.setStyle("cursor", "not-allowed");
+                    }
+                }
+            };
+
+            scwin.sbm_getCourtDetail_submiterror = function(e) {
+                alert("コート情報の取得に失敗しました。");
+            };
+
+            // 一覧へ戻るボタン押下
+            scwin.btn_back_onclick = function(e) {
+                $w.url("/user/CourtList.xml");
+            };
+
+            // 予約手続きへボタン押下
+            scwin.btn_goToConfirm_onclick = function(e) {
+                var status = (dma_courtDetail.get("status") || "").toString().toLowerCase();
+                if (status !== "available" && status !== "公開中") return;
+
+                // 予約確認画面へ遷移（courtId をパラメータ渡し）
+                $w.url("/user/ReservationConfirm.xml", {
+                    param: { courtId: scwin.courtId }
+                });
+            };
+        ]]></script>
+    </head>
+    <body ev:onpageload="scwin.onpageload">
+        <!-- 画面全体のコンテナ（縦方向 Flex） -->
+        <xf:group style="display: flex; flex-direction: column; min-height: 100vh;" id="grp_wrapper">
+            
+            <!-- 1. 共通ヘッダー -->
+            <w2:wframe id="wfm_header" src="/components/Header.xml" style="width: 100%; min-height: 60px;"></w2:wframe>
+
+            <!-- 2. 下部領域（サイドバー + メインコンテンツ） -->
+            <xf:group style="display: flex; flex: 1;" id="grp_body">
+                
+                <!-- 共通サイドバー -->
+                <w2:wframe id="wfm_sidebar" src="/components/Sidebar.xml" style="width: 220px; min-height: 100%;"></w2:wframe>
+
+                <!-- メイン領域 -->
+                <xf:group style="padding: 20px; flex: 1; display: flex; flex-direction: column; align-items: center; background-color: #f8f9fa;" id="grp_container">
+                    <xf:group style="width: 100%; max-width: 600px;" id="grp_content">
+                        
+                        <!-- 画面タイトル -->
+                        <w2:textbox tagname="h2" id="txt_pageTitle" label="コート詳細" style="margin-top: 0; margin-bottom: 20px; color: #333;"></w2:textbox>
+
+                        <xf:group style="background-color: #fff; padding: 24px; border-radius: 8px; border: 1px solid #ddd;" id="grp_card">
+                            <w2:textbox tagname="h3" id="txt_cardTitle" label="コート詳細情報" style="margin-top: 0; border-bottom: 2px solid #333; padding-bottom: 10px; color: #333;"></w2:textbox>
+
+                            <!-- 詳細情報グリッド表示エリア -->
+                            <xf:group style="display: grid; grid-template-columns: 120px 1fr; gap: 12px; margin: 24px 0; font-size: 15px;" id="grp_details">
+                                <w2:textbox tagname="strong" id="lbl_nameTitle" label="コート名:" style=""></w2:textbox>
+                                <w2:textbox id="txt_name" ref="data:dma_courtDetail.name" label="" style=""></w2:textbox>
+
+                                <w2:textbox tagname="strong" id="lbl_typeTitle" label="コート種別:" style=""></w2:textbox>
+                                <w2:textbox id="txt_type" ref="data:dma_courtDetail.type" label="" style=""></w2:textbox>
+
+                                <w2:textbox tagname="strong" id="lbl_indoorTitle" label="屋内外:" style=""></w2:textbox>
+                                <w2:textbox id="txt_indoor" ref="data:dma_courtDetail.displayIndoor" label="" style=""></w2:textbox>
+
+                                <w2:textbox tagname="strong" id="lbl_dateTimeTitle" label="利用日時:" style=""></w2:textbox>
+                                <w2:textbox id="txt_dateTime" ref="data:dma_courtDetail.displayDateTime" label="" style=""></w2:textbox>
+
+                                <w2:textbox tagname="strong" id="lbl_priceTitle" label="利用料金:" style=""></w2:textbox>
+                                <w2:textbox id="txt_price" ref="data:dma_courtDetail.displayPrice" label="" style=""></w2:textbox>
+
+                                <w2:textbox tagname="strong" id="lbl_descriptionTitle" label="概要・説明:" style=""></w2:textbox>
+                                <w2:textbox id="txt_description" ref="data:dma_courtDetail.description" label="" style=""></w2:textbox>
+                            </xf:group>
+
+                            <!-- ボタンエリア -->
+                            <xf:group style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;" id="grp_buttons">
+                                <xf:trigger type="button" id="btn_back" style="padding: 8px 20px; background-color: #6c757d; color: #fff; border: none; border-radius: 4px; cursor: pointer;" ev:onclick="scwin.btn_back_onclick">
+                                    <xf:label><![CDATA[一覧へ戻る]]></xf:label>
+                                </xf:trigger>
+                                <xf:trigger type="button" id="btn_goToConfirm" style="padding: 8px 20px; background-color: #28a745; color: #fff; border: none; border-radius: 4px; cursor: pointer;" ev:onclick="scwin.btn_goToConfirm_onclick">
+                                    <xf:label><![CDATA[予約手続きへ]]></xf:label>
+                                </xf:trigger>
+                            </xf:group>
+                        </xf:group>
+
+                    </xf:group>
+                </xf:group>
+            </xf:group>
+        </xf:group>
+    </body>
+</html>

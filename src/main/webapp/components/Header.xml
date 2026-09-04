@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ev="http://www.w3.org/2001/xml-events"
+    xmlns:w2="http://www.inswave.com/websquare" xmlns:xf="http://www.w3.org/2002/xforms">
+    <head>
+        <w2:type>COMPONENT</w2:type>
+        <w2:buildDate/>
+        <w2:MSA/>
+        <xf:model>
+            <w2:dataCollection baseNode="map"/>
+            <w2:workflowCollection/>
+        </xf:model>
+        <w2:layoutInfo/>
+        <w2:publicInfo method=""/>
+        <script lazy="false" type="text/javascript"><![CDATA[
+            scwin.onpageload = function() {
+                scwin.initHeader();
+            };
+
+            // ヘッダー情報の初期化処理
+            scwin.initHeader = function() {
+                var userStr = localStorage.getItem("user");
+                if (userStr) {
+                    try {
+                        var user = JSON.parse(userStr);
+                        var roleName = (user.role === "ADMIN" || user.role === "admin") ? "管理者" : "一般ユーザー";
+                        lbl_userInfo.setValue((user.name || "ユーザー") + " 様 (" + roleName + ")");
+                    } catch (e) {
+                        lbl_userInfo.setValue("ゲスト 様");
+                    }
+                } else {
+                    lbl_userInfo.setValue("ゲスト 様");
+                }
+            };
+
+            // ハンバーガーボタン押下処理（配置されている各画面の wfm_sidebar を直接開閉）
+            scwin.btn_toggleSidebar_onclick = function(e) {
+                // 親スコープ（ヘッダーを呼び出している各画面）の $p を取得
+                var parentP = $p.parent() ? $p.parent().$p : $p;
+                
+                // 1. WebSquare コンポーネント経由でサイドバー(wfm_sidebar)を取得
+                var sidebarComp = parentP.getComponentById("wfm_sidebar");
+                
+                if (sidebarComp) {
+                    var currentDisplay = sidebarComp.getStyle("display");
+                    if (currentDisplay === "none") {
+                        sidebarComp.setStyle("display", "block");
+                    } else {
+                        sidebarComp.setStyle("display", "none");
+                    }
+                } else {
+                    // 2. DOM 経由でのフォールバック処理
+                    var sidebarElem = document.getElementById("wfm_sidebar");
+                    if (sidebarElem) {
+                        if (sidebarElem.style.display === "none") {
+                            sidebarElem.style.display = "block";
+                        } else {
+                            sidebarElem.style.display = "none";
+                        }
+                    }
+                }
+            };
+
+                // ログアウトボタン押下処理
+                scwin.btn_logout_onclick = function(e) {
+                    if (confirm("ログアウトしますか？")) {
+                        // 1. セッション・ローカルストレージのユーザー情報削除
+                        localStorage.removeItem("user");
+                        
+                        // 2. ログイン画面への確実な画面遷移
+                        // パス構成に合わせてリダイレクト URL を指定
+                        window.location.href = "http://localhost:8080/websquare/websquare.html?w2xPath=/Login.xml";
+                    }
+                };
+        ]]></script>
+    </head>
+    <body ev:onpageload="scwin.onpageload">
+        <xf:group tagname="header" style="background-color: #333; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;" id="grp_header">
+            
+            <!-- 左側エリア：ハンバーガーボタン & タイトル -->
+            <xf:group style="display: flex; align-items: center; gap: 15px;" id="grp_header_left">
+                <xf:trigger type="button" id="btn_toggleSidebar" style="background-color: transparent; color: #fff; border: none; padding: 4px; font-size: 22px; cursor: pointer; display: flex; align-items: center; line-height: 1;" ev:onclick="scwin.btn_toggleSidebar_onclick">
+                    <xf:label><![CDATA[☰]]></xf:label>
+                </xf:trigger>
+                <w2:textbox tagname="h1" id="txt_appTitle" label="テニスコート予約システム" style="margin: 0; font-size: 18px; color: #fff;"></w2:textbox>
+            </xf:group>
+
+            <!-- 右側エリア：ユーザー情報 & ログアウトボタン -->
+            <xf:group style="display: flex; align-items: center; gap: 15px;" id="grp_header_right">
+                <w2:textbox id="lbl_userInfo" label="" style="color: #fff;"></w2:textbox>
+                <xf:trigger type="button" id="btn_logout" style="background-color: #6c757d; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;" ev:onclick="scwin.btn_logout_onclick">
+                    <xf:label><![CDATA[ログアウト]]></xf:label>
+                </xf:trigger>
+            </xf:group>
+
+        </xf:group>
+    </body>
+</html>

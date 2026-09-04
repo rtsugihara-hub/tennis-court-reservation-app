@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ev="http://www.w3.org/2001/xml-events"
+    xmlns:w2="http://www.inswave.com/websquare" xmlns:xf="http://www.w3.org/2002/xforms">
+    <head>
+        <w2:type>COMPONENT</w2:type>
+        <w2:buildDate/>
+        <w2:MSA/>
+        <style type="text/css"><![CDATA[
+            /* 操作ボタン本体のスタイル */
+            .grid-btn-action {
+                background-color: #00a0e9 !important;
+                color: #ffffff !important;
+                border: none !important;
+                border-radius: 4px !important;
+                padding: 4px 12px !important;
+                font-size: 13px !important;
+                font-weight: bold !important;
+                cursor: pointer !important;
+            }
+            .grid-btn-action:hover {
+                background-color: #0080ca !important;
+            }
+        ]]></style>
+        <xf:model>
+            <w2:dataCollection baseNode="map">
+                <!-- 会員情報保存用 DataMap -->
+                <w2:dataMap baseNode="map" id="dma_userInfo">
+                    <w2:keyInfo>
+                        <w2:key id="id" name="ユーザーID" dataType="text"></w2:key>
+                        <w2:key id="name" name="氏名" dataType="text"></w2:key>
+                        <w2:key id="email" name="メールアドレス" dataType="text"></w2:key>
+                    </w2:keyInfo>
+                </w2:dataMap>
+
+                <!-- 予約履歴用 DataList -->
+                <w2:dataList baseNode="list" repeatNode="map" id="dlt_reservationList" saveRemovedData="true">
+                    <w2:columnInfo>
+                        <w2:column id="id" name="予約ID" dataType="text"></w2:column>
+                        <w2:column id="courtName" name="コート名" dataType="text"></w2:column>
+                        <w2:column id="date" name="利用日" dataType="text"></w2:column>
+                        <w2:column id="timeSlot" name="利用時間帯" dataType="text"></w2:column>
+                        <w2:column id="displayDateTime" name="利用日時" dataType="text"></w2:column>
+                        <w2:column id="totalPrice" name="合計料金" dataType="number"></w2:column>
+                        <w2:column id="status" name="ステータスコード" dataType="text"></w2:column>
+                        <w2:column id="displayStatus" name="ステータス" dataType="text"></w2:column>
+                        <w2:column id="statusStyle" name="ステータススタイル" dataType="text"></w2:column>
+                    </w2:columnInfo>
+                </w2:dataList>
+            </w2:dataCollection>
+            <w2:workflowCollection/>
+
+            <!-- ユーザー別予約履歴取得 Submission -->
+            <xf:submission id="sbm_getUserReservations" ref="" target="data:json,dlt_reservationList"
+                action="http://localhost:8081/api/reservations/user/" method="get" mediatype="application/json"
+                encoding="UTF-8" mode="asynchronous" processMsg="読み込み中..."
+                ev:submitdone="scwin.sbm_getUserReservations_submitdone" ev:submiterror="scwin.sbm_getUserReservations_submiterror">
+            </xf:submission>
+        </xf:model>
+        <w2:layoutInfo/>
+        <w2:publicInfo method=""/>
+        <script lazy="false" type="text/javascript"><![CDATA[
+            scwin.onpageload = function() {
+                scwin.initUserInfo();
+            };
+
+            // ログインユーザー情報のロード＆API呼び出し
+            scwin.initUserInfo = function() {
+                var userStr = localStorage.getItem("user");
+                if (userStr) {
+                    try {
+                        var user = JSON.parse(userStr);
+                        dma_userInfo.setJSON(user);
+                        lbl_userName.setValue((user.name || "") + " 様");
+                        lbl_userEmail.setValue(user.email || "");
+
+                        // ユーザーIDに紐づく予約履歴を取得
+                        if (user.id) {
+                            var sbmObj = $w.getSubmission("sbm_getUserReservations");
+                            sbmObj.action = "http://localhost:8081/api/reservations/user/" + user.id;
+                            $w.executeSubmission("sbm_getUserReservations");
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            };
+
+            // 取得データの加工（日時結合・ステータステキストの生成）
+            scwin.sbm_getUserReservations_submitdone = function(e) {
+                var resList = e.responseJSON || dlt_reservationList.getAllJSON();
+                
+                if (!resList || resList.length === 0) {
+                    return;
+                }
+
+                dlt_reservationList.removeAll();
+
+                for (var i = 0; i < resList.length; i++) {
+                    var item = resList[i];
+
+                    var newRow = dlt_reservationList.insertRow();
+                    dlt_reservationList.setCellData(newRow, "id", item.id);
+                    dlt_reservationList.setCellData(newRow, "courtName", item.courtName);
+                    dlt_reservationList.setCellData(newRow, "displayDateTime", (item.date || "") + " " + (item.timeSlot || ""));
+                    dlt_reservationList.setCellData(newRow, "totalPrice", item.totalPrice);
+                    dlt_reservationList.setCellData(newRow, "status", item.status);
+                    dlt_reservationList.setCellData(newRow, "displayStatus", scwin.getStatusText(item.status));
+                }
+            };
+
+            scwin.sbm_getUserReservations_submiterror = function(e) {
+                console.error("予約履歴の取得に失敗しました。");
+            };
+
+            // ステータステキスト変換
+            scwin.getStatusText = function(status) {
+                if (status === "completed" || status === "利用済" || status === "来店済") return "利用済";
+                if (status === "cancelled" || status === "キャンセル") return "キャンセル";
+                return "予約確定";
+            };
+
+            // ★ ボタン単体に色を付けるための Custom Formatter 関数
+            scwin.fn_actionBtnFormatter = function(val, formattedVal, rowIdx, colIdx) {
+                return '<button type="button" class="grid-btn-action">詳細・変更</button>';
+            };
+
+            // GridView セル（詳細・変更ボタン）クリックイベント
+            scwin.grd_reservationList_oncellclick = function(row, col) {
+                var colId = grd_reservationList.getColumnID(col);
+                var rowData = dlt_reservationList.getRowJSON(row);
+
+                if (colId === "btn_detail") {
+                    // 選択された予約IDをパラメータに渡して予約詳細画面へ遷移
+                    $w.url("/user/ReservationDetail.xml", {
+                        param: { reservationId: rowData.id }
+                    });
+                }
+            };
+        ]]></script>
+    </head>
+    <body ev:onpageload="scwin.onpageload">
+        <!-- 画面全体のコンテナ（縦方向 Flex） -->
+        <xf:group style="display: flex; flex-direction: column; min-height: 100vh;" id="grp_wrapper">
+            
+            <!-- 1. 共通ヘッダー -->
+            <w2:wframe id="wfm_header" src="/components/Header.xml" style="width: 100%; min-height: 60px;"></w2:wframe>
+
+            <!-- 2. 下部領域（サイドバー + メインコンテンツ） -->
+            <xf:group style="display: flex; flex: 1;" id="grp_body">
+                
+                <!-- 共通サイドバー -->
+                <w2:wframe id="wfm_sidebar" src="/components/Sidebar.xml" style="width: 220px; min-height: 100%;"></w2:wframe>
+
+                <!-- メイン領域 -->
+                <xf:group style="padding: 20px; flex: 1; background-color: #f8f9fa;" id="grp_container">
+                    <w2:textbox tagname="h2" id="txt_pageTitle" label="マイページ" style="margin-top: 0; margin-bottom: 20px; color: #333;"></w2:textbox>
+
+                    <!-- 会員情報エリア -->
+                    <xf:group style="margin-bottom: 30px; background-color: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;" id="grp_userInfoArea">
+                        <w2:textbox tagname="h3" id="txt_userInfoTitle" label="会員情報" style="margin: 0 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 8px; color: #333;"></w2:textbox>
+                        <xf:group style="display: flex; flex-direction: column; gap: 12px; font-size: 16px; color: #333;" id="grp_userInfoDetails">
+                            <xf:group style="display: flex; align-items: center;" id="grp_userName">
+                                <w2:textbox tagname="span" id="lbl_nameTitle" label="氏名：" style="font-weight: bold; width: 80px;"></w2:textbox>
+                                <w2:textbox tagname="span" id="lbl_userName" label="" style=""></w2:textbox>
+                            </xf:group>
+                            <xf:group style="display: flex; align-items: center;" id="grp_userEmail">
+                                <w2:textbox tagname="span" id="lbl_emailTitle" label="メール：" style="font-weight: bold; width: 80px;"></w2:textbox>
+                                <w2:textbox tagname="span" id="lbl_userEmail" label="" style=""></w2:textbox>
+                            </xf:group>
+                        </xf:group>
+                    </xf:group>
+
+                    <!-- 予約履歴一覧エリア -->
+                    <xf:group style="border-radius: 8px; padding: 20px; background-color: #fff; border: 1px solid #ddd;" id="grp_gridArea">
+                        <w2:textbox tagname="h3" id="txt_gridTitle" label="■ 予約履歴一覧" style="margin: 0 0 15px 0; color: #333;"></w2:textbox>
+
+                        <w2:gridView id="grd_reservationList" dataList="data:dlt_reservationList" style="width: 100%; height: 350px;"
+                            autoFit="allColumn" visibleRowNum="10" rowNumVisible="false"
+                            ev:oncellclick="scwin.grd_reservationList_oncellclick">
+                            <w2:header id="header1">
+                                <w2:row id="row1" style="background-color: #d4edda;">
+                                    <w2:column id="col_id" value="予約ID" width="80"></w2:column>
+                                    <w2:column id="col_courtName" value="コート名" width="140"></w2:column>
+                                    <w2:column id="col_dateTime" value="利用日時" width="160"></w2:column>
+                                    <w2:column id="col_totalPrice" value="合計料金" width="110"></w2:column>
+                                    <w2:column id="col_status" value="ステータス" width="120"></w2:column>
+                                    <w2:column id="col_action" value="操作" width="120"></w2:column>
+                                </w2:row>
+                            </w2:header>
+                            <w2:gBody id="gBody1">
+                                <w2:row id="row2">
+                                    <w2:column id="id" inputType="text" readOnly="true" style="font-size:16px;"></w2:column>
+                                    <w2:column id="courtName" inputType="text" readOnly="true" style="font-size:16px;"></w2:column>
+                                    <w2:column id="displayDateTime" inputType="text" readOnly="true" style="font-size:16px;"></w2:column>
+                                    <w2:column id="totalPrice" inputType="text" dataType="number" displayFormat="¥#,###" readOnly="true" style="font-size:16px;"></w2:column>
+                                    <w2:column id="displayStatus" inputType="text" readOnly="true" style="font-size:14px;"></w2:column>
+                                    <!-- ★ inputType="text" と customFormatter を使用してセル塗り潰しを解除 -->
+                                    <w2:column id="btn_detail" inputType="text" customFormatter="scwin.fn_actionBtnFormatter" width="100" readOnly="true"></w2:column>
+                                </w2:row>
+                            </w2:gBody>
+                        </w2:gridView>
+                    </xf:group>
+                </xf:group>
+            </xf:group>
+        </xf:group>
+    </body>
+</html>

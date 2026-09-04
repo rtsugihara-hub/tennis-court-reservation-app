@@ -1,0 +1,769 @@
+{
+  "overview": {
+    "encoding": {
+      "default_encoding": {
+        "enumeration": "",
+        "description": "エンジン内部で使用されるデフォルトのエンコーディング値。",
+        "xpath": "/websquare/default_encoding/@value",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "UTF-8",
+        "latestVersionRecommended": "UTF-8"
+      },
+      "encoding": {
+        "enumeration": "",
+        "description": "postタグを介してフォームを介してpost形式で渡されるパラメータのエンコード値を設定します。",
+        "xpath": "/websquare/dispatcher/post/encoding/@value",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "UTF-8",
+        "latestVersionRecommended": "UTF-8"
+      }
+    },
+    "engine": {
+      "engineType": {
+        "enumeration": "",
+        "description": "Webスクエアエンジンの難読化と圧縮レベルを設定するために使用されます。",
+        "xpath": "/websquare/engineType/@value",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "5"
+      },
+      "etag": {
+        "enumeration": "",
+        "description": "etagを使用しないかどうか、デフォルトは \"support\"",
+        "xpath": "/websquare/engineType/@etag",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "support"
+      },
+      "wqDefiner": {
+        "enumeration": "",
+        "description": "カスタムwqの実装\nhttp要求時にwqDefiner.wqを要求すると、ユーザーが定義したclassのdoHandleを呼び出す。",
+        "xpath": "/websquare/wqDefiner/@value",
+        "type": "string"
+      }
+    },
+    "date": {
+      "encoding": {
+        "enumeration": "",
+        "description": "pattern:yyyyMMddの場合、特別な事項はありませんが、「2016年11月11日」のようにハングル形式の日付を返す場合、サーバーエンコーディング設定によってハングル割れる現象がある場合があり、エンコーディング設定を変更してエンコードを合わせます。",
+        "xpath": "/websquare/date/encoding/@value",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "UTF-8"
+      }
+    }
+  },
+  "upload": {
+    "file upload": {
+      "support": {
+        "enumeration": "",
+        "description": "エンジンアップロード機能の使用有無\nfalse設定時にupload.wq、imageUpload.wqアップロード機能が機能しない",
+        "xpath": "/websquare/upload/@support",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "true"
+      },
+      "useFileUpload": {
+        "enumeration": "",
+        "description": "ファイルアップロードの使用有無\nfalse 設定時に upload.wq 要求が動作しない\nfalse設定時にimageUpload.wqを使用可能",
+        "xpath": "/websquare/upload/fileUpload/@use",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "true",
+        "latestVersionRecommended": "true"
+      },
+      "encoding": {
+        "enumeration": "",
+        "description": "value 値に応じてアップロードするファイルのファイル名エンコーディングを設定します。",
+        "xpath": "/websquare/upload/encoding/@value",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "UTF-8"
+      },
+      "baseDir": {
+        "enumeration": "",
+        "description": "baseDirノードのvalue属性にファイルが上がるパスを設定します。",
+        "xpath": "/websquare/upload/baseDir/@value",
+        "type": "string"
+      },
+      "subDir": {
+        "enumeration": "",
+        "description": "upload コンポーネントの baseDir 子のパスを指定するための名前を指定します。",
+        "xpath": "/websquare/upload/baseDir/${name}",
+        "type": "element",
+        "child": [
+          {
+            "enumeration": "name",
+            "description": "upload コンポーネントの baseDir 子のパスを指定するための名前を指定します。",
+            "xpath": "/websquare/upload/baseDir/${name}",
+            "type": "string"
+          },
+          {
+            "enumeration": "path",
+            "description": "uploadコンポーネントのsubDirプロパティ値にこのタグの名前を付けて詳細調整を行うことができます。",
+            "xpath": "/websquare/upload/baseDir/${name}/@value",
+            "type": "string"
+          }
+        ]
+      },
+      "firstFilePostFix": {
+        "enumeration": "",
+        "description": "ファイル名にuniqueしたpostfixを付ける。",
+        "xpath": "/websquare/upload/firstFilePostFix/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "false"
+      },
+      "duplicatedFilePostFix": {
+        "enumeration": "",
+        "description": "アップロード時に同じファイルがある場合は、ファイル名の後に付けられるpostfixをvalue値に設定します。",
+        "xpath": "/websquare/upload/duplicatedFilePostFix/@value",
+        "type": "string"
+      },
+      "sequence": {
+        "enumeration": "",
+        "description": "true 設定時に file 名に順次的な順番を付ける。 WASが再起動すると初期化されます。",
+        "xpath": "/websquare/upload/duplicatedFilePostFix/@sequence",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "false"
+      },
+      "maxUploadSize": {
+        "enumeration": "",
+        "description": "アップロードするファイルの最大サイズを設定します。設定しない場合は default 1Mbyte で、単位は byte です。",
+        "xpath": "/websquare/upload/maxUploadSize/@value",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "",
+        "latestVersionRecommended": "1048576"
+      },
+      "subDirMaxUpload": {
+        "enumeration": "",
+        "description": "アップロードするファイルの最大サイズを設定します。設定しない場合は default 1Mbyte で、単位は byte です。",
+        "xpath": "/websquare/upload/maxUploadSize/${name}",
+        "type": "element",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "",
+        "latestVersionRecommended": "1048576",
+        "child": [
+          {
+            "enumeration": "name",
+            "description": "アップロードするファイルの最大サイズを設定します。設定しない場合は default 1Mbyte で、単位は byte です。",
+            "xpath": "/websquare/upload/maxUploadSize/${name}",
+            "type": "string",
+            "option": "",
+            "engineDefault": "",
+            "configDefault": "",
+            "latestVersionRecommended": "1048576"
+          },
+          {
+            "enumeration": "path",
+            "description": "アップロードするファイルの最大サイズを設定します。設定しない場合は default 1Mbyte で、単位は byte です。",
+            "xpath": "/websquare/upload/maxUploadSize/${name}/@value",
+            "type": "string",
+            "option": "",
+            "engineDefault": "",
+            "configDefault": "",
+            "latestVersionRecommended": "1048576"
+          }
+        ]
+      },
+      "allowedExtension": {
+        "enumeration": "",
+        "description": "アップロードを許可するファイルの拡張子を設定します",
+        "xpath": "/websquare/upload/allowedExtension/text()",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "gif, jpg, doc, xls, ppt, pdf, txt"
+      },
+      "deniedExtension": {
+        "enumeration": "",
+        "description": "アップロードを許可しないファイルの拡張子を設定します。",
+        "xpath": "/websquare/upload/deniedExtension/text()",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "exe"
+      },
+      "uploadMode": {
+        "enumeration": "",
+        "description": "アップロード時に使用するフォルダ名を定義する設定には、sessionとrandomの値があります。デフォルトは session です。",
+        "xpath": "/websquare/upload/uploadMode/@value",
+        "type": "combobox",
+        "option": "session, random",
+        "engineDefault": "",
+        "configDefault": "session"
+      },
+      "folderName": {
+        "enumeration": "",
+        "description": "アップロードするフォルダ名をvalue値に設定できます",
+        "xpath": "/websquare/upload/folderName/@value",
+        "type": "string"
+      },
+      "removeKeyPath": {
+        "enumeration": "",
+        "description": "アップロード後、アップロード結果をxmlとして返します。返される結果情報のうち、key ノードに実際のパスを返しています。実際のパスが返されるため、セキュリティ上の理由でパス情報を削除する必要がある場合は、removeKeyPathノードのvalue値をtrueに設定します。",
+        "xpath": "/websquare/upload/callback/removeKeyPath/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "false"
+      },
+      "fileDefiner": {
+        "enumeration": "",
+        "description": "file名とfilePathをユーザーが定義できるインタフェースをサポートします。\nwebsquare.xmlに以下の設定がない場合は、WebSquareでサポートされているファイル名とファイルパスをそのまま使用してください。\nユーザがファイル名とファイルパスをカストマイジングが必要な場合、以下のように抽象クラスに定義されているメソッドを実装後、fileDefiner value属性に実装したクラスのパッケージ全体パスを設定します。",
+        "xpath": "/websquare/upload/fileDefiner/@value",
+        "type": "string"
+      },
+      "decrypt": {
+        "enumeration": "",
+        "description": "ファイルアップロード時にDRM連携時に復号化をサポートするためのインタフェースをサポートします。\nユーザーが復号化連携が必要な場合、以下のように抽象クラスに定義されているメソッドを実装後、decrypt value属性に実装したクラスのパッケージ全体パスを設定します。",
+        "xpath": "/websquare/upload/decrypt/@value",
+        "type": "string"
+      },
+      "decryptTempDir": {
+        "enumeration": "",
+        "description": "復号化のためのtempディレクトリの作業パスをtempDirプロパティに設定します。",
+        "xpath": "/websquare/upload/decrypt/@tempDir",
+        "type": "string"
+      }
+    },
+    "image upload": {
+      "baseDir": {
+        "enumeration": "",
+        "description": "baseDirノードのvalue属性にイメージファイルが上がるパスを設定します。",
+        "xpath": "/websquare/upload/imgUpload/baseDir/@value",
+        "type": "string"
+      },
+      "subDir": {
+        "enumeration": "",
+        "description": "複数のサブフォルダを定義した後、ブラウザでサブフォルダを選択して保存するための設定",
+        "xpath": "/websquare/upload/imgUpload",
+        "type": "element",
+        "child": [
+          {
+            "enumeration": "name",
+            "description": "baseDir 子のパスを指定するための名前を指定します。指定すると、/websquare/upload/imgUpload/baseDir/subDir/@value 設定は無視されます。",
+            "xpath": "/websquare/upload/imgUpload/${name}",
+            "type": "string"
+          },
+          {
+            "enumeration": "path",
+            "description": "UIからsubDirキーに送信された値を/websquare/upload/imgUpload/${subDir}/@valueノードに設定し、設定したパスとしてbaseDirとして指定します。",
+            "xpath": "/websquare/upload/imgUpload/${name}/@value",
+            "type": "string"
+          }
+        ]
+      },
+      "verifyHeader": {
+        "enumeration": "",
+        "description": "有効なイメージ拡張子であることを確認します。\n(gif,jpg,jpeg,jpe,ico,png)",
+        "xpath": "/websquare/upload/imgUpload/verifyHeader/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "",
+        "latestVersionRecommended": "true"
+      },
+      "allowedExtension": {
+        "enumeration": "",
+        "description": "アップロードを許可するファイルの拡張子を設定します。",
+        "xpath": "/websquare/upload/imgUpload/allowedExtension/text()",
+        "type": "string"
+      },
+      "deniedExtension": {
+        "enumeration": "",
+        "description": "アップロードを許可しないファイルの拡張子を設定します。",
+        "xpath": "/websquare/upload/imgUpload/deniedExtension/text()",
+        "type": "string"
+      },
+      "imageDefiner": {
+        "enumeration": "",
+        "description": "image アップロード時に file 名と filePath をユーザーが定義できるインタフェースをサポートします。\nwebsquare.xmlに以下の設定がない場合は、WebSquareでサポートされているファイル名とファイルパスをそのまま使用してください。\nユーザがファイル名とファイルパスをカストマイジングが必要な場合、以下のように抽象クラスに定義されているメソッドを実装後、imageDefiner value属性に実装したクラスのパッケージ全体パスを設定します。",
+        "xpath": "/websquare/upload/imgUpload/imageDefiner/@value",
+        "type": "string"
+      },
+      "subDir (deprecated)": {
+        "enumeration": "",
+        "description": "baseDir 子のパスを指定するためのフォルダ名を指定します。指定すると、/websquare/upload/imgUpload/subDir/@value 設定は無視されます。",
+        "xpath": "/websquare/upload/imgUpload/baseDir/subDir/@value",
+        "type": "string"
+      }
+    }
+  },
+  "excel": {
+    "excel upload": {
+      "maxRowCount": {
+        "enumeration": "",
+        "description": "Excelをアップロードするときの一括制限の制限数を設定します。基準は行数です。 （maxRowCountプロパティはsplitProviderで動作します。）",
+        "xpath": "/websquare/excel/upload/maxRowCount/@value",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "1000"
+      },
+      "maxCellCount": {
+        "enumeration": "",
+        "description": "Excelをアップロードするときにバルクガンを制限するための制限セルの数を設定します。基準はセルの数です。",
+        "xpath": "/websquare/excel/upload/maxCellCount/@value",
+        "type": "string"
+      },
+      "maxUploadSize": {
+        "enumeration": "",
+        "description": "Excelアップロード時にファイルサイズを制限する設定値です。単位は byte です。",
+        "xpath": "/websquare/excel/upload/maxUploadSize/@value",
+        "type": "string"
+      },
+      "loadingMode": {
+        "enumeration": "",
+        "description": "Excelアップロード時にPOIライブラリ中オブジェクトを生成する方法でアップロードするか、xml型のデータを読み込むかを区別する設定です。デフォルトは「POI」で、xml型の処理は「SAX」として登録します。",
+        "xpath": "/websquare/excel/upload/loadingMode/@value",
+        "type": "combobox",
+        "option": "POI, SAX",
+        "engineDefault": "",
+        "configDefault": "POI"
+      },
+      "saxDecimal": {
+        "enumeration": "",
+        "description": "loadingMode=\"SAX\" 設定時に小数点出力の桁数を saxDecimal 属性で指定できます。小数点数を指定します。",
+        "xpath": "/websquare/excel/upload/loadingMode/@saxDecimal",
+        "type": "string"
+      },
+      "decrypt": {
+        "enumeration": "",
+        "description": "Excelアップロード時にDRM連携時に復号化をサポートするためのインタフェースをサポートします。\nユーザーが復号化連携が必要な場合、以下のように抽象クラスに定義されているメソッドを実装後、decrypt value属性に実装したクラスのパッケージ全体パスを設定します。",
+        "xpath": "/websquare/excel/upload/decrypt/@value",
+        "type": "string"
+      },
+      "temp": {
+        "enumeration": "",
+        "description": "復号化のためのtempディレクトリの作業パスをtempDirプロパティに設定します。",
+        "xpath": "/websquare/excel/upload/decrypt/@temp",
+        "type": "string"
+      },
+      "dataConvertor": {
+        "enumeration": "",
+        "description": "Excel アップロード時に cell 値をユーザーがカストマイジングが必要な場合、カストマイジングをサポートするためのインターフェイスをサポートします。\nユーザーがそれぞれの cell 値をカストマイジングが必要な場合、以下のように interface で定義されている method を実装後 dataConvertor value 属性に実装したクラスの package 全体パスを設定します。",
+        "xpath": "/websquare/excel/upload/dataConvertor/@value",
+        "type": "string"
+      },
+      "validExtension": {
+        "enumeration": "",
+        "description": "validExtension = \"true\"に設定した場合は、Excelアップロード時に有効なExcelファイルと拡張子であることを確認した後、xls、xlsx拡張子に合ったPOIを使用します。",
+        "xpath": "/websquare/excel/upload/validExtension/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "false"
+      },
+      "cellDataConvertor": {
+        "enumeration": "",
+        "description": "アップロードするエクセルファイルそれぞれの cell 値を変更する際にユーザクラスを実装後実装されたクラスのフルパッケージ名を設定します。",
+        "xpath": "/websquare/excel/upload/cellDataConvertor/@value",
+        "type": "string"
+      },
+      "applyExcelFormat": {
+        "enumeration": "",
+        "description": "セルタイプが数値で小数点桁数が可変の場合、小数点数字に合ったフォーマットを生成して適用する設定です。",
+        "xpath": "/websquare/excel/upload/applyExcelFormat/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "",
+        "latestVersionRecommended": "false"
+      },
+      "dataRefine": {
+        "enumeration": "",
+        "description": "Excelデータに内部に '（apos）がある場合は置換有無設定です。",
+        "xpath": "/websquare/excel/upload/dataRefine/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "",
+        "latestVersionRecommended": "true"
+      }
+    },
+    "excel download": {
+      "headerColor": {
+        "enumeration": "",
+        "description": "Excelダウンロード時にヘッダーの色を設定します。",
+        "xpath": "/websquare/excel/headerColor/@value",
+        "type": "string"
+      },
+      "bodyColor": {
+        "enumeration": "",
+        "description": "Excelダウンロード時にボディカラーを設定します。",
+        "xpath": "/websquare/excel/bodyColor/@value",
+        "type": "string"
+      },
+      "footerColor": {
+        "enumeration": "",
+        "description": "Excelダウンロード時にフーターの色を設定します。",
+        "xpath": "/websquare/excel/footerColor/@value",
+        "type": "string"
+      },
+      "subtotalColor": {
+        "enumeration": "",
+        "description": "Excelダウンロード時にサブトータルカラーを設定します。",
+        "xpath": "/websquare/excel/subtotalColor/@value",
+        "type": "string"
+      },
+      "maxRowCount": {
+        "enumeration": "",
+        "description": "Excelダウンロード時の一括件制限のための制限件数を設定します。基準は行数です。 （maxRowCountプロパティはsplitProviderで動作します。）",
+        "xpath": "/websquare/excel/download/maxRowCount/@value",
+        "type": "string"
+      },
+      "allowedExtension": {
+        "enumeration": "",
+        "description": "ダウンロード許可拡張の指定",
+        "xpath": "/websquare/excel/download/allowedExtension/text()",
+        "type": "string"
+      },
+      "rowAccessWindowSize": {
+        "enumeration": "",
+        "description": "POI 3.9以上(xlsx)からサポートされる一括件処理のための設定です。\nメモリに持っている行数を設定します。設定されていない場合、デフォルトは100に設定されます。",
+        "xpath": "/websquare/excel/download/rowAccessWindowSize/@value",
+        "type": "string"
+      },
+      "encrypt": {
+        "enumeration": "",
+        "description": "Excelダウンロード時にDRM連携時に暗号化をサポートするためのインタフェースをサポートします。\nユーザーが暗号化連携が必要な場合、以下のように抽象クラスで定義されているメソッドを実装後、暗号化値属性に実装したクラスのパッケージ全体パスを設定します。",
+        "xpath": "/websquare/excel/download/encrypt/@value",
+        "type": "string"
+      },
+      "tempDir": {
+        "enumeration": "",
+        "description": "tempDirプロパティは、advancedExcelDownloadオプションのpwdを指定した場合（xlsxのサポート）、パスワードを設定するためのtempフォルダのパスを指定します。",
+        "xpath": "/websquare/excel/download/maxRowCount/@tempDir",
+        "type": "string"
+      },
+      "dataConvertor": {
+        "enumeration": "",
+        "description": "Excel ダウンロード時に cell 値をユーザーがカストマイジングが必要な場合、カストマイジングをサポートするための interface をサポートします。\nユーザーがそれぞれの cell 値をカストマイジングが必要な場合、以下のように interface で定義されている method を実装後 dataConvertor value 属性に実装したクラスの package 全体パスを設定します。",
+        "xpath": "/websquare/excel/download/dataConvertor/@value",
+        "type": "string"
+      },
+      "dataXMLProvider": {
+        "enumeration": "",
+        "description": "clientから送信したExcelダウンロード用のxml情報を、ユーザーが直接修正できる連携インタフェースを指定できます。ユーザーが実装したclass full package名を設定します。",
+        "xpath": "/websquare/excel/download/dataXMLProvider/@value",
+        "type": "string"
+      },
+      "baseDir": {
+        "enumeration": "",
+        "description": "gridView inputType=\"image\" の場合、エクセルにイメージを挿入するためにイメージが存在するサーバーの絶対パスを変更します。",
+        "xpath": "/websquare/excel/download/baseDir/@value",
+        "type": "string"
+      },
+      "dateTypeDate": {
+        "enumeration": "",
+        "description": "セルタイプを「日付」に指定するには、advancedExcelDownload options中にuseDataFormat = \"true\"に指定し、その設定を \"calendar\"に指定したら日付形式に設定します。",
+        "xpath": "/websquare/excel/download/dateTypeDate/@value",
+        "type": "string"
+      }
+    },
+    "mobile download": {
+      "keyMode": {
+        "enumeration": "",
+        "description": "Android Excelのダウンロード時に特定の機器でサーバーリクエストが2回発生する現象処理のため、以下の設定でサポートしています。\n最初の要求として送信された情報をsessionに設定し、2番目の要求でsessionに保存した情報を照会してダウンロード処理を進めます。\nsessionに設定するkey値は、keyModeノードの値を設定して使用します。\nwebsquareエンジン内で使用するキー値を使用せずに、ユーザーが設定した値を使用するときに使用します。",
+        "xpath": "/websquare/excel/download/mobile/keyMode/@value",
+        "type": "string"
+      },
+      "preFix": {
+        "enumeration": "",
+        "description": "\"random\" に設定されている場合、client で \"randomKey\" に設定された文字列 (request.getParameter(\"randomKey\") ) に \"SITE\" 文字列をプレフィックスとして吹き、キーとして使用します。",
+        "xpath": "/websquare/excel/download/mobile/keyMode/@preFix",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "session"
+      },
+      "userAgent": {
+        "enumeration": "",
+        "description": "requestが2回要求するデバイスのuserAgentの正規表現を設定します。",
+        "xpath": "/websquare/excel/download/mobile/userAgent/@value",
+        "type": "string"
+      },
+      "definer": {
+        "enumeration": "",
+        "description": "Android Excelのダウンロード時に特定の機器でサーバー要求が2回発生する現象処理のために、ユーザーが定義したユーザークラスにclientから送信したxml情報を渡して連携するためのインタフェースを設定します。",
+        "xpath": "/websquare/excel/download/mobile/definer/@value",
+        "type": "string"
+      }
+    }
+  },
+  "csv": {
+    "general information": {
+      "encoding": {
+        "enumeration": "",
+        "description": "value 値に応じてアップロードするファイルのファイル名エンコーディングを設定します。",
+        "xpath": "/websquare/csv/encoding/@value",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "UTF-8"
+      },
+      "useBOM": {
+        "enumeration": "",
+        "description": "「true」設定時にBOM値を設定します。",
+        "xpath": "/websquare/csv/useBOM/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "false"
+      },
+      "opencsv": {
+        "enumeration": "",
+        "description": "csv 仕様を実装した opencsv 外部モジュールを使用する場合に設定します。",
+        "xpath": "/websquare/csv/opencsv/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "false"
+      }
+    },
+    "csv upload": {
+      "maxUploadSize": {
+        "enumeration": "",
+        "description": "アップロードするcsvファイルの最大サイズを設定します。設定しない場合は default 50Mbyte で、単位は byte です。",
+        "xpath": "/websquare/csv/upload/maxUploadSize/@value",
+        "type": "string"
+      },
+      "decrypt": {
+        "enumeration": "",
+        "description": "csvアップロード時にDRM連携時に復号化をサポートするためのインタフェースをサポートします。\nユーザーが復号化連携が必要な場合、以下のように抽象クラスに定義されているメソッドを実装後、decrypt value属性に実装したクラスのパッケージ全体パスを設定します。",
+        "xpath": "/websquare/csv/upload/decrypt/@value",
+        "type": "string"
+      },
+      "tempDir": {
+        "enumeration": "",
+        "description": "復号化のためのtempディレクトリの作業パスをtempDirプロパティに設定します。",
+        "xpath": "/websquare/csv/upload/decrypt/@tempDir",
+        "type": "string"
+      },
+      "checkEncode": {
+        "enumeration": "",
+        "description": "アップロードされるファイルのBOMチェックの有無設定です。",
+        "xpath": "/websquare/csv/upload/checkEncode/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "false"
+      }
+    },
+    "csv download": {
+      "keyMode": {
+        "enumeration": "",
+        "description": "Android Excelのダウンロード時に特定の機器でサーバーリクエストが2回発生する現象処理のため、以下の設定でサポートしています。\n最初の要求として送信された情報をsessionに設定し、2番目の要求でsessionに保存した情報を照会してダウンロード処理を進めます。",
+        "xpath": "/websquare/csv/download/keyMode/@value",
+        "type": "string"
+      },
+      "preFix": {
+        "enumeration": "",
+        "description": "websquareエンジン内で使用するキー値を使用せずに、ユーザーが設定した値を使用するときに使用します。\nex) <keyMode value=\"random\" preFix=\"SITE\" />\n\"random\" に設定されている場合、client で \"randomKey\" に設定された文字列 (request.getParameter(\"randomKey\") ) に \"SITE\" 文字列をプレフィックスとして吹き、キーとして使用します。",
+        "xpath": "/websquare/csv/download/keyMode/@preFix",
+        "type": "string"
+      },
+      "userAgent": {
+        "enumeration": "",
+        "description": "requestが2回要求するデバイスのuserAgentの正規表現を設定します。",
+        "xpath": "/websquare/csv/download/userAgent/@value",
+        "type": "string"
+      },
+      "dataConvertor": {
+        "enumeration": "",
+        "description": "csv ダウンロード時に cell 値をユーザーがカストマイジングが必要な場合、カストマイジングサポートのための interface をサポートします。\nユーザーがそれぞれの cell 値をカストマイジングが必要な場合、以下のように interface で定義されている method を実装後 dataConvertor value 属性に実装したクラスの package 全体パスを設定します。",
+        "xpath": "/websquare/csv/download/dataConvertor/@value",
+        "type": "string"
+      },
+      "encrypt": {
+        "enumeration": "",
+        "description": "csvダウンロード時にDRM連携時に暗号化をサポートするためのインタフェースをサポートします。\nユーザーが暗号化連携が必要な場合、以下のように抽象クラスで定義されているメソッドを実装後、暗号化値属性に実装したクラスのパッケージ全体パスを設定します。",
+        "xpath": "/websquare/csv/download/encrypt/@value",
+        "type": "string"
+      }
+    },
+    "mobile download": {
+      "definer": {
+        "enumeration": "",
+        "description": "Android Excelのダウンロード時に特定の機器でサーバー要求が2回発生する現象処理のために、ユーザーが定義したユーザークラスにclientから送信したxml情報を渡して連携するためのインタフェースを設定します。",
+        "xpath": "/websquare/csv/download/mobile/definer/@value",
+        "type": "string"
+      }
+    }
+  },
+  "i18n": {
+    "general information": {
+      "baseDir": {
+        "enumeration": "",
+        "description": "WEB Service ROOT スタートパス(絶対パス)",
+        "xpath": "/websquare/i18n/xmlInfo/@baseDir",
+        "type": "string"
+      },
+      "defaultLocale": {
+        "enumeration": "",
+        "description": "デフォルトの locale の指定",
+        "xpath": "/websquare/i18n/defaultLocale/@value",
+        "type": "string"
+      },
+      "domain": {
+        "enumeration": "",
+        "description": "locale 設定",
+        "xpath": "/websquare/i18n/defaultLocale",
+        "type": "element",
+        "child": [
+          {
+            "enumeration": "name",
+            "description": "domainのipまたはドメイン設定",
+            "xpath": "/websquare/i18n/defaultLocale/domain/@name",
+            "type": "string"
+          },
+          {
+            "enumeration": "locale",
+            "description": "domain の locale 設定",
+            "xpath": "/websquare/i18n/defaultLocale/domain/@locale",
+            "type": "string"
+          }
+        ]
+      },
+      "localeParam": {
+        "enumeration": "",
+        "description": "get 方式で locale を渡す引数 parameter 名前",
+        "xpath": "/websquare/i18n/localeParam/@value",
+        "type": "string"
+      },
+      "storageType": {
+        "enumeration": "",
+        "description": "xmlの読み込み方法を指定する\n（0：file、1：war、2：jar、3：http、4：https）",
+        "xpath": "/websquare/i18n/xmlInfo/@storageType",
+        "type": "combobox",
+        "option": "0:file, 1:war, 2:jar, 3:http, 4:https"
+      },
+      "baseUrl": {
+        "enumeration": "",
+        "description": "httpデフォルトパスの設定 \n(ex) http://localhost:8081 )",
+        "xpath": "/websquare/i18n/xmlInfo/@baseDir",
+        "type": "string"
+      },
+      "cache": {
+        "enumeration": "",
+        "description": "cache 使用の有無",
+        "xpath": "/websquare/i18n/xmlInfo/@cache",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "true"
+      }
+    },
+    "https": {
+      "keystorePath": {
+        "enumeration": "",
+        "description": "storageType = \"4\"の場合（https）証明書（jks）ファイルへのパス",
+        "xpath": "/websquare/i18n/keystorePath/@value",
+        "type": "string"
+      },
+      "keystoreType": {
+        "enumeration": "",
+        "description": "storageType=\"4\" の場合 (https) 証明書の書式設定 (PKCS12、JKD)",
+        "xpath": "/websquare/i18n/keystoreType/@value",
+        "type": "string"
+      },
+      "keystorePass": {
+        "enumeration": "",
+        "description": "storageType = \"4\"の場合（https）証明書のパスワード",
+        "xpath": "/websquare/i18n/keystorePass/@value",
+        "type": "string"
+      }
+    },
+    "xmlInfo": {
+      "web2fileCacheImpl": {
+        "enumeration": "",
+        "description": "カスタム実装パッケージングパス、指定しない場合はWebSquareによって組み込まれているデフォルトの実装を使用します。",
+        "xpath": "/websquare/i18n/xmlInfo/web2fileCacheImpl/@value",
+        "type": "string"
+      },
+      "excludeList": {
+        "enumeration": "",
+        "description": "storageType=\"0\" の場合、xml パス（full path）に含まれてはならない文字列を検証するための設定です。検証する必要のある文字列を設定します。",
+        "xpath": "/websquare/i18n/xmlInfo/excludeList/@value",
+        "type": "string"
+      }
+    },
+    "messageInfo": {
+      "storageType": {
+        "enumeration": "",
+        "description": "プロパティの読み込み方法を指定する\n（0：file、1：war、2：jar、3：http、4：https）",
+        "xpath": "/websquare/i18n/messageInfo/@storageType",
+        "type": "combobox",
+        "option": "0:file, 1:war, 2:jar, 3:http, 4:https"
+      },
+      "baseDir": {
+        "enumeration": "",
+        "description": "プロパティがある絶対位置",
+        "xpath": "/websquare/i18n/messageInfo/@baseDir",
+        "type": "string"
+      },
+      "messageImpl": {
+        "enumeration": "",
+        "description": "properties を読み込むことができるカスタム属性。\n実装体のフルパッケージ名を入力し、入力しなければ default で動作する。",
+        "xpath": "/websquare/i18n/messageInfo/messageImpl/@value",
+        "type": "string",
+        "option": "",
+        "engineDefault": "",
+        "configDefault": "websquare.i18n.impl.DefaultMessageImpl"
+      },
+      "resource": {
+        "enumeration": "",
+        "description": "多言語プロパティファイルのパス（en）",
+        "xpath": "/websquare/i18n/messageInfo/localeResources/en/resource/@value",
+        "type": "string"
+      }
+    },
+    "obfucdate": {
+      "encodeParameter": {
+        "enumeration": "",
+        "description": "公開されるパスを難読化するための設定です。",
+        "xpath": "/websquare/i18n/encodeParameter/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "false"
+      },
+      "fileNameBase64Decode": {
+        "enumeration": "",
+        "description": "公開される xml ファイル名を難読化するための設定です。",
+        "xpath": "/websquare/i18n/fileNameBase64Decode/@value",
+        "type": "combobox",
+        "option": "true, false",
+        "engineDefault": "",
+        "configDefault": "false",
+        "latestVersionRecommended": "false"
+      }
+    }
+  }
+}

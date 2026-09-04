@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ev="http://www.w3.org/2001/xml-events"
+    xmlns:w2="http://www.inswave.com/websquare" xmlns:xf="http://www.w3.org/2002/xforms">
+    <head>
+        <w2:type>COMPONENT</w2:type>
+        <w2:buildDate/>
+        <w2:MSA/>
+        <xf:model>
+            <w2:dataCollection baseNode="map">
+                <!-- ログインリクエスト用データモデル -->
+                <w2:dataMap baseNode="map" id="dma_login">
+                    <w2:keyInfo>
+                        <w2:key id="email" name="メールアドレス" dataType="text"></w2:key>
+                        <w2:key id="password" name="パスワード" dataType="text"></w2:key>
+                    </w2:keyInfo>
+                </w2:dataMap>
+                <!-- ログイン成功時のレスポンス（ユーザー情報）格納用モデル -->
+                <w2:dataMap baseNode="map" id="dma_user">
+                    <w2:keyInfo>
+                        <w2:key id="id" name="ユーザーID" dataType="text"></w2:key>
+                        <w2:key id="name" name="名前" dataType="text"></w2:key>
+                        <w2:key id="email" name="メールアドレス" dataType="text"></w2:key>
+                        <w2:key id="role" name="権限" dataType="text"></w2:key>
+                    </w2:keyInfo>
+                </w2:dataMap>
+            </w2:dataCollection>
+            <w2:workflowCollection/>
+            
+            <!-- API 通信定義 (Submission) -->
+            <xf:submission id="sbm_login" ref='data:json,dma_login' target="data:json,dma_user"
+                action="http://localhost:8081/api/auth/login" method="post" mediatype="application/json"
+                encoding="UTF-8" instance="" replace="" errorHandler="" customHandler="" mode="asynchronous"
+                processMsg="ログイン中..." ev:submitdone="scwin.sbm_login_submitdone" ev:submiterror="scwin.sbm_login_submiterror">
+            </xf:submission>
+        </xf:model>
+        <w2:layoutInfo/>
+        <w2:publicInfo method=""/>
+        <script lazy="false" type="text/javascript"><![CDATA[
+            scwin.onpageload = function() {
+                // 画面読み込み時の初期化処理
+                lbl_error.setValue("");
+            };
+
+            // ログインボタンクリックイベント
+            scwin.btn_login_onclick = function(e) {
+                lbl_error.setValue("");
+
+                var email = dma_login.get("email");
+                var password = dma_login.get("password");
+
+                // 入力チェック
+                if (!email || email.trim() === "") {
+                    lbl_error.setValue("メールアドレスを入力してください。");
+                    ipt_email.focus();
+                    return;
+                }
+                if (!password || password.trim() === "") {
+                    lbl_error.setValue("パスワードを入力してください。");
+                    ipt_password.focus();
+                    return;
+                }
+
+                // Submission実行（ログイン通信）
+                $w.executeSubmission("sbm_login");
+            };
+
+            // ログイン通信 成功時コールバック
+            scwin.sbm_login_submitdone = function(e) {
+                // DataMap経由ではなく、イベントオブジェクトから直接レスポンスJSONを取得
+                var userData = e.responseJSON || dma_user.getJSON();
+                console.log("【ログインユーザー情報】", userData);
+
+                if (!userData || !userData.id) {
+                    lbl_error.setValue("ログイン情報の取得に失敗しました。");
+                    return;
+                }
+
+                // LocalStorage にユーザー情報を保存
+                localStorage.setItem("user", JSON.stringify(userData));
+
+                // ロール判定（大文字・小文字・プロパティ名表記の揺れに対応）
+                var rawRole = userData.role || userData.ROLE || userData.userRole || "";
+                var userRole = rawRole.toString().toLowerCase();
+
+                // 遷移先URLの決定
+                var targetUrl = "/user/Dashboard.xml";
+                if (userRole.indexOf("admin") !== -1) {
+                    targetUrl = "/admin/AdminCourtList.xml";
+                }
+
+                console.log("【判定ロール】", userRole, "【遷移先】", targetUrl);
+
+                // 画面遷移実行
+                $w.url(targetUrl);
+            };
+
+            // ログイン通信 エラー時コールバック
+            scwin.sbm_login_submiterror = function(e) {
+                lbl_error.setValue("メールアドレスまたはパスワードが正しくありません。");
+            };
+        ]]></script>
+    </head>
+    <body ev:onpageload="scwin.onpageload">
+        <xf:group style="width: 100%; flex: 1; min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; box-sizing: border-box; padding: 20px;" id="grp_container">
+            <xf:group style="width: 100%; max-width: 600px; padding: 40px; background-color: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); box-sizing: border-box;" id="grp_card">
+                
+                <!-- タイトル -->
+                <w2:textbox style="text-align: center; margin-top: 0; margin-bottom: 24px; font-size: 24px; color: #333; font-weight: bold;" id="txt_title" label="テニスコート予約管理システム" tagname="h2"></w2:textbox>
+
+                <!-- エラーメッセージ領域 -->
+                <w2:textbox style="color: red; font-size: 14px; margin-bottom: 20px; text-align: center; min-height: 20px;" id="lbl_error" label="" tagname="p"></w2:textbox>
+
+                <!-- メールアドレス入力 -->
+                <xf:group style="margin-bottom: 20px;" id="grp_email">
+                    <w2:textbox style="display: block; margin-bottom: 8px; font-weight: bold; text-align: left; color: #333;" id="lbl_email" label="メールアドレス" tagname="label"></w2:textbox>
+                    <xf:input ref="data:dma_login.email" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box;" id="ipt_email" placeholder="Eメールを入力してください。"></xf:input>
+                </xf:group>
+
+                <!-- パスワード入力 -->
+                <xf:group style="margin-bottom: 24px;" id="grp_password">
+                    <w2:textbox style="display: block; margin-bottom: 8px; font-weight: bold; text-align: left; color: #333;" id="lbl_password" label="パスワード" tagname="label"></w2:textbox>
+                    <xf:secret ref="data:dma_login.password" style="width: 100%; padding: 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box;" id="ipt_password" placeholder="パスワードを入力してください。"></xf:secret>
+                </xf:group>
+
+                <!-- ログインボタン -->
+                <xf:trigger type="button" style="width: 100%; padding: 12px; background-color: #007bff; color: #fff; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;" id="btn_login" ev:onclick="scwin.btn_login_onclick">
+                    <xf:label><![CDATA[ログイン]]></xf:label>
+                </xf:trigger>
+
+            </xf:group>
+        </xf:group>
+    </body>
+</html>
