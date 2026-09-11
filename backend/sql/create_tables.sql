@@ -1,35 +1,43 @@
--- 1. ユーザーテーブル (users)
-CREATE TABLE users (
-    id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+-- 1. Users テーブル
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL
+    role VARCHAR(50) NOT NULL DEFAULT 'user',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE courts (
-    id VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    is_indoor BOOLEAN NOT NULL,
+-- 2. Courts テーブル
+CREATE TABLE IF NOT EXISTS courts (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(100),
+    is_indoor BOOLEAN DEFAULT FALSE,
     price_per_hour INT NOT NULL,
     description TEXT,
-    status VARCHAR(20) NOT NULL,
-    date DATE NOT NULL,
-    time_slot VARCHAR(50) NOT NULL,
-    is_deleted BOOLEAN NOT NULL DEFAULT FALSE -- 論理削除フラグを追加
+    status VARCHAR(50) DEFAULT 'available',
+    is_deleted BOOLEAN DEFAULT FALSE,
+    date VARCHAR(20),
+    time_slot VARCHAR(50),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 3. 予約テーブル (reservations)
-CREATE TABLE reservations (
-    id VARCHAR(50) PRIMARY KEY,
-    user_id VARCHAR(50) NOT NULL,
-    court_id VARCHAR(50) NOT NULL,
-    date DATE NOT NULL,
+-- 3. Reservations テーブル
+CREATE TABLE IF NOT EXISTS reservations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    court_id BIGINT NOT NULL,
+    user_name VARCHAR(255),
+    court_name VARCHAR(255),
+    date VARCHAR(20) NOT NULL,
     time_slot VARCHAR(50) NOT NULL,
     total_price INT NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'confirmed',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_reservations_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_reservations_court FOREIGN KEY (court_id) REFERENCES courts(id)
 );
