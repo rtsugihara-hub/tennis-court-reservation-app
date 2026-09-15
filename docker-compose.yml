@@ -12,8 +12,14 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      # backend/sql/create_table.sql を自動実行するように設定
-      - ./backend/sql/create_table.sql:/docker-entrypoint-initdb.d/create_table.sql
+      # 01でテーブル作成、02で初期データ投入
+      - ./backend/sql/create_tables.sql:/docker-entrypoint-initdb.d/01_create_tables.sql
+      - ./backend/sql/insert_data.sql:/docker-entrypoint-initdb.d/02_insert_data.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user", "-ppassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   # 2. バックエンドコンテナ (Java / Spring Boot)
   backend:
@@ -23,13 +29,19 @@ services:
     container_name: tennis-backend
     ports:
       - "8080:8080"
+    # mysqladmin ping이 healthy로 표시된 직후에도 JDBC 연결이 순간적으로 거부되어
+    # Hibernate가 Dialect를 못 정하고 크래시하는 경우가 있음(실측 확인, 2026-09-08 —
+    # WebSquare/jQuery 브랜치 둘 다 down -v 직후 재기동 시 재현) — 재시도 없이 그대로
+    # 죽으므로 자동 재시작으로 흡수한다.
+    restart: on-failure
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/tennis_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/tennis_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   # 3. HTML / jQuery 用フロントエンドコンテナ (Nginx)
   frontend:

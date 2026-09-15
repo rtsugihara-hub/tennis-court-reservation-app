@@ -1,35 +1,44 @@
--- 1. ユーザーテーブル (users)
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS reservations;
+DROP TABLE IF EXISTS courts;
+DROP TABLE IF EXISTS users;
+SET FOREIGN_KEY_CHECKS = 1;
+
 CREATE TABLE users (
-    id VARCHAR(50) PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL
-);
+    role VARCHAR(20) NOT NULL,
+    created_at VARCHAR(255),
+    updated_at VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE courts (
-    id VARCHAR(50) PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     type VARCHAR(50) NOT NULL,
     is_indoor BOOLEAN NOT NULL,
     price_per_hour INT NOT NULL,
     description TEXT,
     status VARCHAR(20) NOT NULL,
-    date DATE NOT NULL,
+    date VARCHAR(50) NOT NULL,
     time_slot VARCHAR(50) NOT NULL,
-    is_deleted BOOLEAN NOT NULL DEFAULT FALSE -- 論理削除フラグを追加
-);
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at VARCHAR(255),
+    updated_at VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 3. 予約テーブル (reservations)
 CREATE TABLE reservations (
-    id VARCHAR(50) PRIMARY KEY,
-    user_id VARCHAR(50) NOT NULL,
-    court_id VARCHAR(50) NOT NULL,
-    date DATE NOT NULL,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    court_id BIGINT NOT NULL,
+    date VARCHAR(50) NOT NULL,
     time_slot VARCHAR(50) NOT NULL,
     total_price INT NOT NULL,
     status VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at VARCHAR(255),
+    updated_at VARCHAR(255),
     CONSTRAINT fk_reservations_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_reservations_court FOREIGN KEY (court_id) REFERENCES courts(id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
