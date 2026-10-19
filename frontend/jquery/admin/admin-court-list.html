@@ -381,7 +381,6 @@
           contentType: 'application/json',
           data: JSON.stringify(payload),
           success: function () {
-            alert(editingId ? '更新しました' : '登録しました');
             handleClear();
             loadCourts();
           },
