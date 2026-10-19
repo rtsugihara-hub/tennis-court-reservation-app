@@ -255,7 +255,7 @@
               <td style="border: 1px solid #333; padding: 10px;">${escapeHtml(court.name)}</td>
               <td style="border: 1px solid #333; padding: 10px;">${escapeHtml(court.type)}</td>
               <td style="border: 1px solid #333; padding: 10px;">${isIndoorText}</td>
-              <td style="border: 1px solid #333; padding: 10px;">${court.date || ''} ${court.timeSlot || ''}</td>
+              <td style="border: 1px solid #333; padding: 10px;">${escapeHtml(court.date || '')} ${escapeHtml(court.timeSlot || '')}</td>
               <td style="border: 1px solid #333; padding: 10px;">${priceText}</td>
               <td style="border: 1px solid #333; padding: 10px;">${statusText}</td>
               <td style="border: 1px solid #333; padding: 10px; text-align: left;">${escapeHtml(court.description || '')}</td>

@@ -161,7 +161,7 @@
               <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${res.id}</td>
               <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${escapeHtml(res.courtName || '')}</td>
               <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">
-                ${res.date || ''} ${res.timeSlot || ''}
+                ${escapeHtml(res.date || '')} ${escapeHtml(res.timeSlot || '')}
               </td>
               <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${priceText}</td>
               <td style="border: 1px solid #333; padding: 14px;">

@@ -213,7 +213,7 @@
               <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${escapeHtml(court.type)}</td>
               <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${isIndoorText}</td>
               <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">
-                ${court.date || ''} ${court.timeSlot || ''}
+                ${escapeHtml(court.date || '')} ${escapeHtml(court.timeSlot || '')}
               </td>
               <td style="border: 1px solid #333; padding: 14px; font-size: 16px;">${priceText}</td>
               <td style="border: 1px solid #333; padding: 14px; font-size: 16px; text-align: left;">

@@ -230,7 +230,7 @@
               <td style="border: 1px solid #333; padding: 12px;">${res.id}</td>
               <td style="border: 1px solid #333; padding: 12px;">${escapeHtml(res.userName || '未登録')}</td>
               <td style="border: 1px solid #333; padding: 12px;">${escapeHtml(res.courtName || '')}</td>
-              <td style="border: 1px solid #333; padding: 12px;">${res.date || ''} ${res.timeSlot || ''}</td>
+              <td style="border: 1px solid #333; padding: 12px;">${escapeHtml(res.date || '')} ${escapeHtml(res.timeSlot || '')}</td>
               <td style="border: 1px solid #333; padding: 12px;">${priceText}</td>
               <td style="border: 1px solid #333; padding: 12px;">${statusText}</td>
               <td style="border: 1px solid #333; padding: 12px;">
