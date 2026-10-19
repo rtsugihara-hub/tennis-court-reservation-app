@@ -316,10 +316,10 @@
                   text-overflow: ellipsis;
                   white-space: nowrap;
                 "
-                title="${escapeHtml(res.courtName)} (${res.timeSlot})"
+                title="${escapeHtml(res.courtName)} (${escapeHtml(res.timeSlot)})"
               >
                 ${escapeHtml(res.courtName)}<br />
-                ${res.timeSlot}
+                ${escapeHtml(res.timeSlot)}
               </div>
             `;
           });
@@ -361,7 +361,7 @@
             <tr style="border-bottom: 1px solid #333;">
               <td style="border: 1px solid #333; padding: 10px;">${res.id}</td>
               <td style="border: 1px solid #333; padding: 10px;">${escapeHtml(res.courtName)}</td>
-              <td style="border: 1px solid #333; padding: 10px;">${dateStr} ${res.timeSlot}</td>
+              <td style="border: 1px solid #333; padding: 10px;">${escapeHtml(dateStr)} ${escapeHtml(res.timeSlot)}</td>
               <td style="border: 1px solid #333; padding: 10px;">${statusText}</td>
             </tr>
           `);
