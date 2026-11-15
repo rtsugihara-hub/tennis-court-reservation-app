@@ -1,0 +1,778 @@
+openapi: 3.0.3
+info:
+  title: テニスコート予約システム API
+  description: Excelの設計書をベースにしたOpenAPI仕様書
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: ローカル開発サーバー
+
+paths:
+  # P01: ログイン画面
+  /api/auth/login:
+    post:
+      summary: デモログイン
+      description: ログイン画面で入力されたメールアドレスおよびパスワードを受け取り、ユーザー認証を行う。認証成功時はセッション情報(トークン)およびユーザー基本情報を返却する。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 認証成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: 認証失敗（メールアドレスまたはパスワードが不正）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # P03, P09: コート一覧・検索取得 / 【管理者】コート新規登録
+  /api/courts:
+    get:
+      summary: コート一覧・検索取得API（一般 / 管理者共用）
+      description: |
+        コート一覧データ(全件)を取得する。
+        ※一般ユーザー側での検索・フィルタリングのほか、管理者画面用として非公開・論理削除済コートも含めた全件データの取得にも対応。
+      responses:
+        '200':
+          description: 取得成功（該当データ0件時は空配列 [] を返却）
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourtResponse'
+                example:
+                  - createdAt: null
+                    date: "2026-09-01"
+                    description: "照明設備完備のメインコートです。"
+                    id: 1
+                    isDeleted: true
+                    isIndoor: false
+                    name: "センターコート A"
+                    pricePerHour: 2000
+                    status: "available"
+                    timeSlot: "10:00-12:00"
+                    type: "オムニ"
+                    updatedAt: "2026-09-01 05:06:00"
+                  - createdAt: "2026-09-03 17:45:43"
+                    date: null
+                    description: null
+                    id: 9
+                    isDeleted: true
+                    isIndoor: false
+                    name: null
+                    pricePerHour: 0
+                    status: "available"
+                    timeSlot: null
+                    type: null
+                    updatedAt: "2026-09-04 04:04:30"
+    post:
+      summary: 【管理者】コート新規登録API
+      description: 管理者画面のフォームに入力されたコート情報をDBへ新規登録する。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourtInput'
+      responses:
+        '201':
+          description: 登録成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtResponse'
+              example:
+                createdAt: "2026-09-04 06:21:05"
+                date: "2026-09-30"
+                description: "テスト登録"
+                id: 23
+                isDeleted: false
+                isIndoor: false
+                name: "テスト"
+                pricePerHour: 2000
+                status: "available"
+                timeSlot: "10:00-12:00"
+                type: "オムニ"
+                updatedAt: "2026-09-04 06:21:05"
+
+  # P04, P09: コート詳細・更新・削除
+  /api/courts/{id}:
+    get:
+      summary: 【未実装】コート詳細取得API
+      deprecated: true
+      description: |
+        指定されたコートID(id)に該当するコートの詳細情報を1件取得する。
+        ※本APIはバックエンド未実装（ルート未定義）。現状の実装では一覧APIで取得・保持したデータを画面間で渡して描画しており、将来的な詳細画面の単体データ取得化に伴うリファクタリング用として設計上定義。
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 詳細を表示する対象のコートID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: 取得成功（※バックエンド未実装のため仮定義）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtResponse'
+              example:
+                createdAt: "2026-09-01 05:20:39"
+                date: "2026-09-01"
+                description: "照明設備完備のメインコートです。"
+                id: 1
+                isDeleted: false
+                isIndoor: false
+                name: "センターコート A"
+                pricePerHour: 2000
+                status: "available"
+                timeSlot: "10:00-12:00"
+                type: "オムニ"
+                updatedAt: "2026-09-01 05:06:00"
+    put:
+      summary: 【管理者】コート更新API
+      description: |
+        編集対象のコートID(id)を指定し、入力フォームの内容で更新する。
+        ※指定されたコートに有効な予約(ステータス: confirmed 等)が1件でも存在する場合、更新処理は拒否され 409 Conflict エラーを返却する。
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 更新対象のコートID
+          schema:
+            type: integer
+            format: int64
+            example: 23
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourtInput'
+            example:
+              date: "2026-09-30"
+              description: "テスト編集"
+              id: 23
+              isDeleted: false
+              isIndoor: false
+              name: "編集"
+              pricePerHour: 2000
+              status: "maintenance"
+              timeSlot: "10:00-12:00"
+              type: "オムニ"
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtResponse'
+              example:
+                createdAt: null
+                date: "2026-09-30"
+                description: "テスト編集"
+                id: 23
+                isDeleted: false
+                isIndoor: false
+                name: "編集"
+                pricePerHour: 2000
+                status: "maintenance"
+                timeSlot: "10:00-12:00"
+                type: "オムニ"
+                updatedAt: "2026-09-04 06:29:16"
+        '409':
+          description: 有効な予約が存在するため競合
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "有効な予約が存在するため、このコート情報を更新することはできません。"
+    delete:
+      summary: 【管理者】コート削除API
+      description: 指定されたコートID(id)のコート情報を論理削除する。
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 削除対象のコートID
+          schema:
+            type: integer
+            format: int64
+            example: 17
+      responses:
+        '204':
+          description: 削除成功（No Content：返却データなし）
+
+  # P05, P10: 予約実行（新規作成）/ 【管理者】予約全件検索取得
+  /api/reservations:
+    get:
+      summary: 【管理者】予約全件検索取得API
+      description: |
+        管理者が予約受付管理画面で全ユーザーの予約一覧を取得する。
+        ※全件データを取得後、画面(フロントエンド)側で絞り込み・検索処理を行う。将来的なリファクタリング時にサーバーサイドでのクエリ検索化を検討。
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: "利用日で絞り込み(未指定時は日付指定なし、例: 2026-04-01)"
+          schema:
+            type: string
+            example: "2026-04-01"
+        - name: status
+          in: query
+          required: false
+          description: "ステータス絞り込み(all: すべて / confirmed: 予約済 / completed: 来店済 / cancelled: キャンセル済)"
+          schema:
+            type: string
+            example: "all"
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservationResponse'
+                example:
+                  - courtId: 1
+                    courtName: "センターコート A"
+                    createdAt: "2026-08-24 17:00"
+                    date: "2026-09-01"
+                    id: 1
+                    status: "completed"
+                    timeSlot: "10:00-12:00"
+                    totalPrice: 2000
+                    updatedAt: "2026-09-01 04:37:37"
+                    userId: 1
+                    userName: "山田 太郎"
+                  - courtId: 2
+                    courtName: "インドアコート B"
+                    createdAt: "2026-08-24 17:00"
+                    date: "2026-09-05"
+                    id: 2
+                    status: "completed"
+                    timeSlot: "13:00-15:00"
+                    totalPrice: 3000
+                    updatedAt: null
+                    userId: 1
+                    userName: "山田 太郎"
+                  - courtId: 16
+                    courtName: "新規作成4"
+                    createdAt: "2026-09-04 04:11:29"
+                    date: "2026-10-02"
+                    id: 13
+                    status: "confirmed"
+                    timeSlot: "10:00-15:00"
+                    totalPrice: 5555
+                    updatedAt: "2026-09-04 04:11:29"
+                    userId: 2
+                    userName: "佐藤 花子"
+    post:
+      summary: 予約実行（新規作成）API
+      description: 予約確認画面から送信されたユーザーIDおよびコートIDを受け取り、予約データを新規作成する。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationCreateRequest'
+      responses:
+        '201':
+          description: 予約作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '409':
+          description: 重複予約等の競合エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: "指定されたコート・日時は既に予約されています。"
+
+  # P02, P07: 直近予約取得 / 予約履歴一覧取得
+  /api/reservations/user/{id}:
+    get:
+      summary: 直近予約取得API / 予約履歴一覧取得
+      description: ログインユーザーの直近予約情報・履歴を表示する。（予約一覧取得APIからデータを全件取得し、フロントエンド側で直近の1件を抽出して表示）
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ログイン中のユーザーID
+          schema:
+            type: integer
+            format: int64
+            example: 2
+      responses:
+        '200':
+          description: 取得成功（配列またはデータなし時null）
+          content:
+            application/json:
+              schema:
+                type: array
+                nullable: true
+                items:
+                  $ref: '#/components/schemas/ReservationResponse'
+                example:
+                  - courtId: 3
+                    courtName: "サブコート C"
+                    createdAt: "2026-08-24 17:00"
+                    date: "2026-09-10"
+                    id: 3
+                    status: "completed"
+                    timeSlot: "15:00-17:00"
+                    totalPrice: 1500
+                    updatedAt: "2026-09-01 06:01:50"
+                    userId: 2
+                    userName: "佐藤 花子"
+                  - courtId: 6
+                    courtName: "挙動確認テスト"
+                    createdAt: "2026-09-01 07:02:25"
+                    date: "2026-10-09"
+                    id: 7
+                    status: "cancelled"
+                    timeSlot: "12:00-15:00"
+                    totalPrice: 30001
+                    updatedAt: "2026-09-03 16:37:16"
+                    userId: 2
+                    userName: "佐藤 花子"
+
+  # P08: 予約詳細取得API
+  /api/reservations/{id}:
+    get:
+      summary: 【未実装】予約詳細取得API
+      deprecated: true
+      description: |
+        指定された予約ID(id)に該当する予約の詳細情報を1件取得する。
+        ※本APIはバックエンド未実装（ルート未定義）。現状の実装ではマイページで取得・保持したデータを画面間で渡して表示しており、将来的な直リンク対応・単体取得化に伴うリファクタリング用として設計上定義。
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ログイン中のユーザーが予約したコートの予約ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: 取得成功（※バックエンド未実装のため仮定義）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+              example:
+                courtId: 3
+                courtName: "サブコート C"
+                createdAt: "2026-08-24 17:00"
+                date: "2026-09-10"
+                id: 3
+                status: "completed"
+                timeSlot: "15:00-17:00"
+                totalPrice: 1500
+                updatedAt: "2026-09-01 06:01:50"
+                userId: 2
+                userName: "佐藤 花子"
+
+  # P08: 予約キャンセルAPI
+  /api/reservations/{id}/cancel:
+    put:
+      summary: 予約キャンセルAPI
+      description: 指定された予約ID(id)の予約ステータスを「キャンセル済(cancelled)」に更新する。
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: キャンセル対象の予約ID
+          schema:
+            type: integer
+            format: int64
+            example: 13
+      responses:
+        '200':
+          description: キャンセル成功（更新後の予約情報を返却）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+              example:
+                courtId: 16
+                courtName: "新規作成4"
+                createdAt: "2026-09-04 04:11:29"
+                date: "2026-10-02"
+                id: 13
+                status: "cancelled"
+                timeSlot: "10:00-15:00"
+                totalPrice: 5555
+                updatedAt: "2026-09-04 06:48:09"
+                userId: 2
+                userName: "佐藤 花子"
+
+  # P10: 【管理者】受付ステータス更新API
+  /api/reservations/{id}/status:
+    put:
+      summary: 【管理者】受付ステータス更新API
+      description: 管理者が一覧テーブルの「来店済」ボタンを押下した際、対象予約のステータスを更新する。
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ステータス更新対象の予約ID
+          schema:
+            type: integer
+            format: int64
+            example: 12
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  description: "変更後のステータス(completed: 来店済)"
+                  example: "completed"
+      responses:
+        '200':
+          description: ステータス更新成功（更新後の予約情報を返却）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+              example:
+                courtId: 21
+                courtName: "新規作成"
+                createdAt: "2026-09-04 11:19:01"
+                date: "2026-09-06"
+                id: 12
+                status: "completed"
+                timeSlot: "10:00-15:00"
+                totalPrice: 5000
+                updatedAt: "2026-09-04 06:14:37"
+                userId: 2
+                userName: "佐藤 花子"
+
+components:
+  schemas:
+    # --- ログイン関連 ---
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: ユーザーが入力したメールアドレス
+          example: "admin@example.com"
+        password:
+          type: string
+          description: ユーザーが入力したパスワード
+          example: "admin123"
+
+    LoginResponse:
+      type: object
+      required:
+        - email
+        - id
+        - name
+        - password
+        - role
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          description: 作成日時(未設定時はnull)
+          example: null
+        email:
+          type: string
+          format: email
+          description: メールアドレス(ログインID)
+          example: "admin@example.com"
+        id:
+          type: integer
+          format: int64
+          description: ユーザーID
+          example: 3
+        name:
+          type: string
+          description: ユーザー名
+          example: "管理者 太郎"
+        password:
+          type: string
+          description: パスワード
+          example: "admin123"
+        role:
+          type: string
+          description: "ユーザー権限(admin / user)"
+          example: "admin"
+        updatedAt:
+          type: string
+          nullable: true
+          description: 更新日時(未設定時はnull)
+          example: null
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "メールアドレスまたはパスワードが正しくありません。"
+
+    # --- コート関連 ---
+    CourtResponse:
+      type: object
+      required:
+        - date
+        - id
+        - isDeleted
+        - isIndoor
+        - pricePerHour
+        - status
+        - timeSlot
+        - type
+        - updatedAt
+      properties:
+        createdAt:
+          type: string
+          nullable: true
+          description: レコード作成日時(YYYY-MM-DD HH:mm:ss、未設定時はnull)
+          example: "2026-09-01 05:20:39"
+        date:
+          type: string
+          nullable: true
+          description: 利用日(YYYY-MM-DD または YYYYMMDD、未設定時はnull)
+          example: "2026-09-01"
+        description:
+          type: string
+          nullable: true
+          description: コートの説明・備考(未設定時はnull)
+          example: "照明設備完備のメインコートです。"
+        id:
+          type: integer
+          format: int64
+          description: コートID
+          example: 1
+        isDeleted:
+          type: boolean
+          description: "論理削除フラグ(true: 削除済 / false: 有効)"
+          example: false
+        isIndoor:
+          type: boolean
+          description: "屋内外区分(true: 屋内 / false: 屋外)"
+          example: false
+        name:
+          type: string
+          nullable: true
+          description: コート名(未設定時はnull)
+          example: "センターコート A"
+        pricePerHour:
+          type: integer
+          description: 1時間あたりの利用料金(円)
+          example: 2000
+        status:
+          type: string
+          description: "ステータス(available: 公開中 / maintenance: メンテナンス中 / reserved: 予約済 等)"
+          example: "available"
+        timeSlot:
+          type: string
+          nullable: true
+          description: 利用時間帯(未設定時はnull)
+          example: "10:00-12:00"
+        type:
+          type: string
+          nullable: true
+          description: コート種別(オムニ / クレー / ハード / 人工芝、未設定時はnull)
+          example: "オムニ"
+        updatedAt:
+          type: string
+          description: 最終更新日時(YYYY-MM-DD HH:mm:ss)
+          example: "2026-09-01 05:06:00"
+
+    CourtInput:
+      type: object
+      required:
+        - date
+        - isDeleted
+        - isIndoor
+        - name
+        - pricePerHour
+        - status
+        - timeSlot
+        - type
+      properties:
+        date:
+          type: string
+          description: 利用日(YYYY-MM-DD)
+          example: "2026-09-30"
+        description:
+          type: string
+          nullable: true
+          description: 備考・説明
+          example: "テスト編集"
+        id:
+          type: integer
+          format: int64
+          description: 更新対象のコートID（更新時任意）
+          example: 23
+        isDeleted:
+          type: boolean
+          description: 論理削除フラグ(true / false)
+          example: false
+        isIndoor:
+          type: boolean
+          description: "屋内外区分(true: 屋内 / false: 屋外)"
+          example: false
+        name:
+          type: string
+          description: コート名
+          example: "編集"
+        pricePerHour:
+          type: integer
+          description: 1時間あたりの利用料金(円)
+          example: 2000
+        status:
+          type: string
+          description: "公開ステータス(available: 公開中 / maintenance: 非公開等)"
+          example: "maintenance"
+        timeSlot:
+          type: string
+          description: 利用時間帯
+          example: "10:00-12:00"
+        type:
+          type: string
+          description: コート種別(オムニ / クレー / ハード / 人工芝)
+          example: "オムニ"
+
+    # --- 予約関連 ---
+    ReservationCreateRequest:
+      type: object
+      required:
+        - courtId
+        - courtName
+        - date
+        - status
+        - timeSlot
+        - totalPrice
+        - userId
+        - userName
+      properties:
+        courtId:
+          type: integer
+          format: int64
+          description: 予約対象のコートID
+          example: 1
+        courtName:
+          type: string
+          description: コート名
+          example: "センターコート A"
+        date:
+          type: string
+          description: 利用日(YYYY-MM-DD)
+          example: "2026-09-01"
+        status:
+          type: string
+          description: "初期ステータス(confirmed: 予約確定)"
+          example: "confirmed"
+        timeSlot:
+          type: string
+          description: 利用時間帯
+          example: "10:00-12:00"
+        totalPrice:
+          type: integer
+          description: 合計金額(円)
+          example: 2000
+        userId:
+          type: integer
+          format: int64
+          description: 予約実行ユーザーのID
+          example: 1
+        userName:
+          type: string
+          description: 予約実行ユーザーの氏名
+          example: "山田 太郎"
+
+    ReservationResponse:
+      type: object
+      required:
+        - courtId
+        - courtName
+        - createdAt
+        - date
+        - id
+        - status
+        - timeSlot
+        - totalPrice
+        - userId
+        - userName
+      properties:
+        courtId:
+          type: integer
+          format: int64
+          description: 予約対象のコートID
+          example: 3
+        courtName:
+          type: string
+          description: コート名
+          example: "サブコート C"
+        createdAt:
+          type: string
+          description: 予約作成日時(YYYY-MM-DD HH:mm)
+          example: "2026-08-24 17:00"
+        date:
+          type: string
+          description: 利用日(YYYY-MM-DD または YYYYMMDD)
+          example: "2026-09-10"
+        id:
+          type: integer
+          format: int64
+          description: 予約ID
+          example: 3
+        status:
+          type: string
+          description: "ステータス(confirmed / completed / cancelled)"
+          example: "completed"
+        timeSlot:
+          type: string
+          description: 利用時間帯
+          example: "15:00-17:00"
+        totalPrice:
+          type: integer
+          description: 合計利用料金(円)
+          example: 1500
+        updatedAt:
+          type: string
+          nullable: true
+          description: 最終更新日時(YYYY-MM-DD HH:mm:ss、未設定時はnull)
+          example: "2026-09-01 06:01:50"
+        userId:
+          type: integer
+          format: int64
+          description: 予約者のユーザーID
+          example: 2
+        userName:
+          type: string
+          description: 予約者のユーザー氏名
+          example: "佐藤 花子"

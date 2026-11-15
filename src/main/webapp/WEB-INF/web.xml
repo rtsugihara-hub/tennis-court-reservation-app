@@ -18,4 +18,12 @@
     <url-pattern>*.wq</url-pattern>
   </servlet-mapping>
 
+  <!-- *.xmlを素通りさせるとTomcatの標準サーブレットが静的ファイルとして生のXMLのまま
+       返してしまい、WebSquareエンジンが画面としてレンダリングできない(以前のセッションで
+       実測確認済みの問題、Docker起動時のみ手動で追加していたが未コミットだった) -->
+  <servlet-mapping>
+    <servlet-name>websquareDispatcher</servlet-name>
+    <url-pattern>*.xml</url-pattern>
+  </servlet-mapping>
+
 </web-app>

@@ -1,0 +1,14 @@
+FROM tomcat:9.0-jdk17-temurin
+
+# Spring BootのREST API(8081、独自の組み込みTomcat)とWebSquareの画面エンジン(8080)は
+# 同じTomcatプロセスに同居できない(*.wq/*.xmlのサーブレットマッピングがSpringの
+# DispatcherServletと衝突し404になる、以前のセッションで実測確認済み) — そのため
+# WebSquare専用の「素の」Tomcatコンテナとしてこのイメージを別立てする。
+RUN rm -rf /usr/local/tomcat/webapps/ROOT
+COPY src/main/webapp /usr/local/tomcat/webapps/ROOT
+COPY .settings/websquare_home /usr/local/websquare_home
+
+# WebSquareエンジンはWEBSQUARE_HOMEをSystem.getProperty()で読む(System.getenv()ではない)ため、
+# 通常のDocker ENVではなくJVMシステムプロパティ(-D)として渡す必要がある
+# (以前のセッションでDockerランタイム時のみ手動で渡していたが未コミットだった設定)。
+ENV CATALINA_OPTS="-DWEBSQUARE_HOME=/usr/local/websquare_home"

@@ -23,5 +23,30 @@ services:
       timeout: 5s
       retries: 10
 
+  # 2. WebSquare画面エンジン専用コンテナ(素のTomcat、Spring Boot APIとはポート/プロセスを分離)
+  websquare:
+    build:
+      context: .
+      dockerfile: Dockerfile.websquare
+    container_name: tennis-websquare
+    ports:
+      - "8080:8080"
+
+  # 3. Spring Boot REST API(各画面がブラウザから直接 http://localhost:8081 を叩く構成のため、
+  # Tomcat側からのプロキシ設定は不要 — ポートを公開するだけでよい)
+  backend:
+    image: tennis-court-reservation-app-backend:latest
+    container_name: tennis-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/tennis_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+      # このイメージは8週間前のビルド(server.port=8081への変更より前)のため、
+      # アプリ内部では8080のまま起動する — 環境変数で8081へ強制上書きする。
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   mysql_data:
